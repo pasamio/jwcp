@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/component-install.dtd">
 <install type="component" version="1.5.0">
-    <name>Working Copy</name>
+    <name>WCP</name>
     <creationDate>May 2009</creationDate>
     <author>Edvard Ananyan</author>
     <authorEmail>edo888@gmail.com</authorEmail>
@@ -10,34 +10,36 @@
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
     <version>1.5.0</version>
     <description>This component manages working copies of the live site</description>
-    
+
     <installfile></installfile>
     <uninstallfile></uninstallfile>
 
     <install>
         <queries>
             <!-- TODO: add create #__wcp table query -->
-            <query></query>
+            <query>select * from #__menu</query>
         </queries>
     </install>
 
     <uninstall>
         <queries>
             <!-- TODO: add delete #__wcp table query -->
-            <query></query>
+            <query>select * from #__menu</query>
         </queries>
     </uninstall>
 
     <administration>
-        <menu img="components/com_jumi/images/wcp.png">Working Copy</menu>
+        <menu img="components/com_wcp/images/wcp.png">Working Copy</menu>
 
         <files folder="admin">
+            <!-- TODO: add all files -->
             <filename>index.html</filename>
             <filename>admin.wcp.php</filename>
             <filename>toolbar.wcp.php</filename>
             <filename>toolbar.wcp.html.php</filename>
-            <filename>images/wcp.png</filename>
             <filename>images/index.html</filename>
+            <filename>images/wcp.png</filename>
+            <filename>tables/index.html</filename>
             <filename>views/index.html</filename>
             <filename>models/index.html</filename>
             <filename>helpers/index.html</filename>

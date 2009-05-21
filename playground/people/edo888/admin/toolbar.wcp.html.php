@@ -10,6 +10,9 @@ defined('_JEXEC') or die('Restricted access');
 
 class TOOLBAR_config {
 	function _DEFAULT() {
-		JToolBarHelper::help('screen.wcp');
+        JToolBarHelper::addNew();
+        JToolBarHelper::editList();
+        JToolBarHelper::deleteList();
+        JToolBarHelper::help('screen.wcp');
 	}
 }

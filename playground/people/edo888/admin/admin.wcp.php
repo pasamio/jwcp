@@ -8,10 +8,7 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
-// Make sure the user is authorized to view this page
-$user = & JFactory::getUser();
-if(!$user->authorize('com_wcp', 'manage'))
-	$mainframe->redirect('index.php', JText::_('ALERTNOTAUTH'));
+// TODO: Make sure the user is authorized to view this page
 
 /*
 // Set the table directory
