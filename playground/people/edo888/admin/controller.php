@@ -16,7 +16,12 @@ class WCPController extends JController {
         parent::__construct($config);
 
         // TODO: Register Extra tasks
-        //$this->registerTask('add',  'display');
+        $this->registerTask('add', 'edit');
+        $this->registerTask('edit', 'edit');
+        $this->registerTask('save', 'save');
+        $this->registerTask('apply', 'save');
+        $this->registerTask('cancel', 'cancel');
+        $this->registerTask('remove', 'remove');
     }
 
 
@@ -25,19 +30,20 @@ class WCPController extends JController {
 	    parent::display();
 	}
 
-    function save() {
+    function edit() {
+        JRequest::setVar('view', 'child');
+        parent::display();
+    }
 
+    function save() {
+        // TODO: write the save function
     }
 
     function cancel() {
-
+        $this->setRedirect('index.php?option=com_wcp');
     }
 
-    function edit() {
-
-    }
-
-    function delete() {
-
+    function remove() {
+        // TODO: write the remove function
     }
 }
