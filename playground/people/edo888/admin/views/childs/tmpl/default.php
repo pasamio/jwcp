@@ -13,13 +13,19 @@ defined('_JEXEC') or die('Restricted access');
     <thead>
         <tr>
             <th width="5">
-                <?php echo JText::_('ID'); ?>
+                <?php echo JText::_('NUM'); ?>
+            </th>
+            <th width="20">
+                <input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->items); ?>);" />
             </th>
             <th>
-                <?php echo JText::_('Name'); ?>
+                <?php echo JHTML::_('grid.sort',  JText::_('Name'), 'w.name', $this->lists['order_Dir'], $this->lists['order']); ?>
             </th>
             <th>
-                <?php echo JText::_('Path'); ?>
+                <?php echo JHTML::_('grid.sort',  JText::_('Path'), 'w.path', $this->lists['order_Dir'], $this->lists['order']); ?>
+            </th>
+            <th width="5">
+                <?php echo JHTML::_('grid.sort',  JText::_('ID'), 'w.id', $this->lists['order_Dir'], $this->lists['order']); ?>
             </th>
         </tr>
     </thead>
@@ -27,16 +33,23 @@ defined('_JEXEC') or die('Restricted access');
     $k = 0;
     for($i=0, $n=count( $this->items ); $i < $n; $i++) {
         $row =& $this->items[$i];
+        $checked = JHTML::_('grid.checkedout', $row, $i);
         ?>
         <tr class="<?php echo "row$k"; ?>">
             <td>
-                <?php echo $row->id; ?>
+                <?php echo $i + 1; ?>
+            </td>
+            <td>
+                <?php echo $checked; ?>
             </td>
             <td>
                 <?php echo $row->name; ?>
             </td>
             <td>
                 <?php echo $row->path; ?>
+            </td>
+            <td>
+                <?php echo $row->id; ?>
             </td>
         </tr>
         <?php
@@ -48,6 +61,8 @@ defined('_JEXEC') or die('Restricted access');
 <input type="hidden" name="option" value="com_wcp" />
 <input type="hidden" name="task" value="" />
 <input type="hidden" name="boxchecked" value="0" />
-<input type="hidden" name="controller" value="childs" />
+<input type="hidden" name="filter_order" value="<?php echo $this->lists['order']; ?>" />
+<input type="hidden" name="filter_order_Dir" value="<?php echo $this->lists['order_Dir']; ?>" />
+<?php echo JHTML::_('form.token'); ?>
 
 </form>

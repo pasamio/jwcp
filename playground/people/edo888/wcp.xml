@@ -16,15 +16,23 @@
 
     <install>
         <queries>
-            <!-- TODO: add create #__wcp table query -->
-            <query>select * from #__menu</query>
+            <query>
+                CREATE TABLE `#__wcp` (
+                    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                    `sid` int(11) NOT NULL DEFAULT '0',
+                    `name` varchar(250) NOT NULL DEFAULT '',
+                    `parent_sid` varchar(250) NOT NULL DEFAULT '',
+                    `path` varchar(250) NOT NULL DEFAULT '',
+                    `params` text,
+                    PRIMARY KEY (`id`)
+                ) ENGINE=MyISAM DEFAULT CHARSET=utf8
+            </query>
         </queries>
     </install>
 
     <uninstall>
         <queries>
-            <!-- TODO: add delete #__wcp table query -->
-            <query>select * from #__menu</query>
+            <query>drop table if exists #__wcp</query>
         </queries>
     </uninstall>
 
@@ -35,15 +43,21 @@
             <!-- TODO: add all files -->
             <filename>index.html</filename>
             <filename>admin.wcp.php</filename>
-            <filename>toolbar.wcp.php</filename>
-            <filename>toolbar.wcp.html.php</filename>
+            <filename>controller.php</filename>
             <filename>images/index.html</filename>
             <filename>images/wcp.png</filename>
             <filename>tables/index.html</filename>
+            <filename>tables/wcp.php</filename>
             <filename>views/index.html</filename>
+            <filename>views/child/index.html</filename>
+            <filename>views/child/tmpl/index.html</filename>
+            <filename>views/childs/index.html</filename>
+            <filename>views/childs/view.html.php</filename>
+            <filename>views/childs/tmpl/index.html</filename>
+            <filename>views/childs/tmpl/default.php</filename>
             <filename>models/index.html</filename>
+            <filename>models/childs.php</filename>
             <filename>helpers/index.html</filename>
-            <filename>controllers/index.html</filename>
         </files>
 
         <languages folder="admin/languages">
