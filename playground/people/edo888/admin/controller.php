@@ -40,6 +40,8 @@ class WCPController extends JController {
     }
 
     function cancel() {
+        // Check for request forgeries
+        JRequest::checkToken() or jexit('Invalid Token');
         $this->setRedirect('index.php?option=com_wcp');
     }
 
