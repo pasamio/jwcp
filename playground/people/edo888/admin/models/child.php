@@ -17,16 +17,15 @@ class WCPModelChild extends JModel {
     }
 
     function _buildQuery() {
-        $where   = $this->_buildWhere();
-
+        $where = $this->_buildWhere();
         $query = 'SELECT w.* FROM #__wcp AS w'
-            . $where
-            . $orderby;
+            . $where;
         return $query;
     }
 
     function _buildWhere() {
-        $where = ' WHERE id = ' . JRequest::getInt('id', 0);
+        $cid = JRequest::getVar('cid', array(0), '', 'array');
+        $where = ' WHERE id = ' . (JRequest::getCmd('task', 'add') == 'add' ? 0 : (int) $cid[0]);
         return $where;
     }
 

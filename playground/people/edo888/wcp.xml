@@ -24,7 +24,8 @@
                     `parent_sid` varchar(250) NOT NULL DEFAULT '',
                     `path` varchar(250) NOT NULL DEFAULT '',
                     `params` text,
-                    PRIMARY KEY (`id`)
+                    PRIMARY KEY (`id`),
+                    UNIQUE KEY `id` (`id`)
                 ) ENGINE=MyISAM DEFAULT CHARSET=utf8
             </query>
         </queries>
