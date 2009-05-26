@@ -15,7 +15,9 @@ class WCPViewChilds extends JView {
 	function display($tpl = null) {
 	    global $mainframe, $option;
 
-        JToolBarHelper::title(JText::_('WCP Manager'), 'generic.png');
+	    require_once(JPATH_COMPONENT.DS.'helpers'.DS.'wcp.php');
+
+        JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . (WCPHelper::isMaster() ? JText::_('Master') : JText::_('Child')) . ' ]</small></small>', 'generic.png');
         JToolBarHelper::addNew();
         JToolBarHelper::editList();
         JToolBarHelper::deleteList();
