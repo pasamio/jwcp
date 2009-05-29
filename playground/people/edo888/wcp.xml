@@ -40,7 +40,7 @@
     <administration>
         <menu img="components/com_wcp/images/wcp.png">Working Copy</menu>
 
-        <files folder="admin">
+        <files>
             <!-- TODO: add all files -->
             <filename>index.html</filename>
             <filename>admin.wcp.php</filename>
@@ -51,7 +51,9 @@
             <filename>tables/wcp.php</filename>
             <filename>views/index.html</filename>
             <filename>views/child/index.html</filename>
+            <filename>views/child/view.html.php</filename>
             <filename>views/child/tmpl/index.html</filename>
+            <filename>views/child/tmpl/default.php</filename>
             <filename>views/childs/index.html</filename>
             <filename>views/childs/view.html.php</filename>
             <filename>views/childs/tmpl/index.html</filename>
@@ -59,9 +61,10 @@
             <filename>models/index.html</filename>
             <filename>models/childs.php</filename>
             <filename>helpers/index.html</filename>
+            <filename>helpers/wcp.php</filename>
         </files>
 
-        <languages folder="admin/languages">
+        <languages folder="languages">
             <language tag="en-GB">en-GB.com_wcp.ini</language>
         </languages>
     </administration>
