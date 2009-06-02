@@ -8,7 +8,12 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
-// TODO: Make sure the user is authorized to view this page
+// Make sure the user is authorized to view this page
+$acl =& JFactory::getACL();
+$acl->addACL('com_wcp', 'manage', 'users', 'super administrator');
+$user =& JFactory::getUser();
+if(!$user->authorize('com_wcp', 'manage'))
+    $mainframe->redirect('index.php', JText::_('ALERTNOTAUTH'));
 
 // Require the base controller
 require_once(JPATH_COMPONENT.DS.'controller.php');
