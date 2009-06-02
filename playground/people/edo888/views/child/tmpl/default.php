@@ -9,6 +9,21 @@
 defined('_JEXEC') or die('Restricted access');
 ?>
 <script type="text/javascript">
+function submitbutton(pressbutton) {
+    var form = document.adminForm;
+    if (pressbutton == 'cancel') {
+        submitform(pressbutton);
+        return;
+    }
+
+    // do field validation
+    if (form.name.value == ''){
+        alert("<?php echo JText::_('Child must have a title', true); ?>");
+    } else {
+        submitform(pressbutton);
+    }
+}
+
 function addExcludeFile(anchor) {
 	var n = document.getElementsByName('exclude_files[]').length + 1;
 	var a = document.getElementById('exclude_files_add');
@@ -155,10 +170,10 @@ function addExcludeTable() {
                 <table class="admintable">
                 <tr>
                     <td width="200" class="key">
-                            <?php echo JText::_('Enabled'); ?>
+                        <?php echo JText::_('Enabled'); ?>
                     </td>
                     <td>
-                        <?php echo $this->ftp->enable; ?>
+                        <?php echo JHTML::_('select.booleanlist', 'ftp_enable', 'class="inputbox"', $this->ftp->enable); ?>
                     </td>
                 </tr>
                 <tr>
@@ -267,7 +282,7 @@ function addExcludeTable() {
     <input type="hidden" name="option" value="com_wcp" />
     <input type="hidden" name="task" value="" />
     <input type="hidden" name="cid[]" value="<?php echo $this->item->id; ?>" />
-    <input type="hidden" name="secret" value="<?php echo $this->secret; ?>" />
+    <input type="hidden" name="sid" value="<?php echo $this->secret; ?>" />
     <?php echo JHTML::_('form.token'); ?>
 
 </form>
