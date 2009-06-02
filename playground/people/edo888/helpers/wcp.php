@@ -78,8 +78,8 @@ class WCPHelper {
         }
 
         // Copy all files and folders to the child
-        $master_folders = JFolder::folders(JPATH_ROOT, '.', false, true);
-        $master_files = JFolder::files(JPATH_ROOT, '.', false, true);
+        $master_folders = JFolder::folders(JPATH_ROOT, '.', true, true);
+        $master_files = JFolder::files(JPATH_ROOT, '.', true, true);
 
         // Debug: echo '<pre>', print_r($master_folders, true), '</pre>';
         // Debug: echo '<pre>', print_r($master_files, true), '</pre>';
@@ -96,8 +96,10 @@ class WCPHelper {
             foreach($master_files as $master_file)
                 $child_fs->store($master_file, $master_file);
         } else {
+            jimport('joomla.filesystem.file');
+
             foreach($master_folders as $master_folder)
-                JFolder::copy($master_folder, str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_folder), '', false);
+                JFolder::create(str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_folder));
             foreach($master_files as $master_file)
                 JFile::copy($master_file, str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_file), '', false);
         }
