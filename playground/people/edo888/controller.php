@@ -37,6 +37,12 @@ class WCPController extends JController {
 
     function save() {
         // TODO: write the save function
+        require_once(JPATH_COMPONENT.DS.'helpers'.DS.'wcp.php');
+        require_once(JPATH_COMPONENT.DS.'tables'.DS.'wcp.php');
+        WCPHelper::createChild();
+        $msg = JText::_('Testing mode');
+        $link = 'index.php?option=com_wcp';
+        $this->setRedirect($link, $msg);
     }
 
     function cancel() {

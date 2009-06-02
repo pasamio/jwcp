@@ -34,7 +34,9 @@ class WCPViewChild extends JView {
 
         // Get child params
         if(JRequest::getVar('task', 'edit') == 'add') {
-            // TODO: define default exclude list
+            // TODO: define child defaults
+            $child->path = './child';
+
             $exclude_files = array();
             $exclude_files[] = './cache';
             $exclude_files[] = './includes';
@@ -78,7 +80,7 @@ class WCPViewChild extends JView {
             $database->set('prefix', 'wcp_');
 
             $ftp = new JObject;
-            $ftp->set('enable', JHTML::_('select.booleanlist', 'ftp_enable', 'class="inputbox"', $mainframe->getCfg('ftp_enable')));
+            $ftp->set('enable', $mainframe->getCfg('ftp_enable'));
             $ftp->set('host', $mainframe->getCfg('ftp_host'));
             $ftp->set('port', $mainframe->getCfg('ftp_port'));
             $ftp->set('user', $mainframe->getCfg('ftp_user'));
