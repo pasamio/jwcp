@@ -22,7 +22,8 @@ class WCPHelper {
         global $mainframe;
 
         $master_db =& JFactory::getDBO();
-        $child_db  = new JDatabaseMySQL(array(JRequest::getVar('host'), JRequest::getVar('user'), JRequest::getVar('password'), JRequest::getVar('database'), JRequest::getVar('wcp_')));
+        $child_db = new JDatabaseMySQL(array('host' => JRequest::getVar('host'), 'user' => JRequest::getVar('user'), 'password' => JRequest::getVar('password'), 'database' => JRequest::getVar('database'), 'prefix' => JRequest::getVar('prefix')));
+        // Debug: $child_db->debug(1);
 
         if(!$child_db->connected())
             return false;
@@ -63,17 +64,23 @@ class WCPHelper {
 
         // Copy all tables w/ data to the child
         $master_tables = $master_db->getTableList();
+        // Debug: echo '<pre>', print_r($master_tables, true), '</pre>';
         foreach($master_tables as $master_table) {
             // TODO: alter master table for adding create date and last modified date fields
+
             $master_table_ddl = array_pop($master_db->getTableCreate($master_table));
             $child_table = str_replace($master_db->_table_prefix, '#__', $master_table);
             $child_table_ddl = preg_replace('/'.$master_table.'/', $child_table, $master_table_ddl, 1);
             // Debug: echo '<pre>', $child_table_ddl, '</pre>';
-            $child_db->query($child_table_ddl);
-            $master_db->query('select * from '.$master_table);
+
+            $child_db->setQuery($child_table_ddl);
+            $child_db->query();
+
+            $master_db->setQuery('select * from '.$master_table);
             $master_rows = $master_db->loadObjectList();
             foreach($master_rows as $master_row)
                 $child_db->insertObject($child_table, $master_row);
+
             // TODO: alter child table for changing auto increment value
         }
 
@@ -97,7 +104,6 @@ class WCPHelper {
                 $child_fs->store($master_file, $master_file);
         } else {
             jimport('joomla.filesystem.file');
-
             foreach($master_folders as $master_folder)
                 JFolder::create(str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_folder));
             foreach($master_files as $master_file)
