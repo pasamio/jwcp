@@ -112,6 +112,94 @@ class WCPHelper {
         }
 
         // TODO: Configure child
+        $config = new JRegistry('config');
+        $config_array = array();
+
+        // SITE SETTINGS
+        $config_array['offline'] = $mainframe->getCfg('offline');
+        $config_array['editor'] = $mainframe->getCfg('editor');
+        $config_array['list_limit'] = $mainframe->getCfg('list_limit');
+        $config_array['helpurl'] = $mainframe->getCfg('helpurl');
+
+        // DEBUG
+        $config_array['debug'] = $mainframe->getCfg('debug');
+        $config_array['debug_lang'] = $mainframe->getCfg('debug_lang');
+
+        // SEO SETTINGS
+        $config_array['sef'] = $mainframe->getCfg('sef');
+        $config_array['sef_rewrite'] = $mainframe->getCfg('sef_rewrite');
+        $config_array['sef_suffix'] = $mainframe->getCfg('sef_suffix');
+
+        // FEED SETTINGS
+        $config_array['feed_limit'] = $mainframe->getCfg('feed_limit');
+        $config_array['feed_email'] = $mainframe->getCfg('feed_email');
+
+        // SERVER SETTINGS
+        $config_array['secret'] = JRequest::getVar('sid', 0, 'post', 'string');
+        $config_array['gzip'] = $mainframe->getCfg('gzip');
+        $config_array['error_reporting'] = $mainframe->getCfg('error_reporting');
+        $config_array['xmlrpc_server'] = $mainframe->getCfg('xmlrpc_server');
+        $config_array['log_path'] = $mainframe->getCfg('log_path'); // TODO: change it for child
+        $config_array['tmp_path'] = $mainframe->getCfg('tmp_path'); //  TODO: change it for child
+        $config_array['live_site'] = $mainframe->getCfg('live_site'); // TODO: change it for child
+        $config_array['force_ssl'] = $mainframe->getCfg('force_ssl');
+
+        // LOCALE SETTINGS
+        $config_array['offset'] = $mainframe->getCfg('offset');
+
+        // CACHE SETTINGS
+        $config_array['caching'] = $mainframe->getCfg('caching');
+        $config_array['cachetime'] = $mainframe->getCfg('cachetime');
+        $config_array['cache_handler'] = $mainframe->getCfg('cache_handler');
+        $config_array['memcache_settings'] = $mainframe->getCfg('memcache_settings');
+
+        // FTP SETTINGS
+        $config_array['ftp_enable'] = $mainframe->getCfg('ftp_enable');
+        $config_array['ftp_host'] = $mainframe->getCfg('ftp_host');
+        $config_array['ftp_port'] = $mainframe->getCfg('ftp_port');
+        $config_array['ftp_user'] = $mainframe->getCfg('ftp_user');
+        $config_array['ftp_pass'] = $mainframe->getCfg('ftp_pass');
+        $config_array['ftp_root'] = $mainframe->getCfg('ftp_root');
+
+        // DATABASE SETTINGS
+        $config_array['dbtype'] = $mainframe->getCfg('dbtype');
+        $config_array['host'] = JRequest::getVar('host', 'localhost', 'post', 'string');
+        $config_array['user'] = JRequest::getVar('user', '', 'post', 'string');
+        $config_array['password'] = JRequest::getVar('password', '', 'post', 'string');
+        $config_array['db'] = JRequest::getVar('database', '', 'post', 'string');
+        $config_array['dbprefix'] = JRequest::getVar('prefix', 'wcp_', 'post', 'string');
+
+        // MAIL SETTINGS
+        $config_array['mailer'] = $mainframe->getCfg('mailer');
+        $config_array['mailfrom'] = $mainframe->getCfg('mailfrom');
+        $config_array['fromname'] = $mainframe->getCfg('fromname');
+        $config_array['sendmail'] = $mainframe->getCfg('sendmail');
+        $config_array['smtpauth'] = $mainframe->getCfg('smtpauth');
+        $config_array['smtpuser'] = $mainframe->getCfg('smtpuser');
+        $config_array['smtppass'] = $mainframe->getCfg('smtppass');
+        $config_array['smtphost'] = $mainframe->getCfg('smtphost');
+
+        // META SETTINGS
+        $config_array['MetaAuthor'] = $mainframe->getCfg('MetaAuthor');
+        $config_array['MetaTitle'] = $mainframe->getCfg('MetaTitle');
+        $config_array['sitename'] = $mainframe->getCfg('sitename');
+        $config_array['offline_message'] = $mainframe->getCfg('offline_message');
+
+        // SESSION SETTINGS
+        $config_array['lifetime'] = $mainframe->getCfg('lifetime');
+        $config_array['session_handler'] = $mainframe->getCfg('session_handler');
+
+        // Load config array
+        $config->loadArray($config_array);
+
+        // Get the path of the child configuration file
+        $fname = JPATH_CONFIGURATION.DS.JRequest::getVar('path').DS.'configuration.php';
+
+        // Get the config registry in PHP class format and write it to configuation.php
+        jimport('joomla.filesystem.file');
+        JFile::write($fname, $config->toString('PHP', 'config', array('class' => 'JConfig')));
+
+        // TODO: add friendly error reporting
 
         return true;
     }
