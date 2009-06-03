@@ -10,8 +10,17 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.view');
 
+/*
+ * Working Copy Child View class
+ *
+ */
 class WCPViewChild extends JView {
 
+    /*
+     * Display the child
+     *
+     * @access public
+     */
 	function display($tpl = null) {
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . (JRequest::getVar('task', 'edit') == 'edit' ? JText::_('Edit Child') : JText::_('New Child')) . ' ]</small></small>', 'generic.png');
         JToolBarHelper::save();

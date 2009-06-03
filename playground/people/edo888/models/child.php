@@ -8,6 +8,10 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+/*
+ * Child model class
+ *
+ */
 class WCPModelChild extends JModel {
 
     var $_data = null;
@@ -16,6 +20,12 @@ class WCPModelChild extends JModel {
         parent::__construct();
     }
 
+    /*
+     * Build query to get child data
+     *
+     * @access public
+     * @return string
+     */
     function _buildQuery() {
         $where = $this->_buildWhere();
         $query = 'SELECT w.* FROM #__wcp AS w'
@@ -23,12 +33,24 @@ class WCPModelChild extends JModel {
         return $query;
     }
 
+    /*
+     * Build where clause
+     *
+     * @access public
+     * @return string
+     */
     function _buildWhere() {
         $cid = JRequest::getVar('cid', array(0), '', 'array');
         $where = ' WHERE id = ' . (JRequest::getCmd('task', 'add') == 'add' ? 0 : (int) $cid[0]);
         return $where;
     }
 
+    /*
+     * Load child data
+     *
+     * @access public
+     * @return array
+     */
     function getData() {
         // Lets load the data if it doesn't already exist
         if (empty($this->_data)) {
