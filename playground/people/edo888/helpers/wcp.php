@@ -8,7 +8,17 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+/*
+ * Working Copy helper class
+ *
+ */
 class WCPHelper {
+    /*
+     * Determines if the site is master
+     *
+     * @access public
+     * @return boolean
+     */
     function isMaster() {
         global $mainframe;
         $db =& JFactory::getDBO();
@@ -18,6 +28,12 @@ class WCPHelper {
         return !(bool) $db->getNumRows();
     }
 
+    /*
+     * Creates a child from master
+     *
+     * @access public
+     * @return boolean True on success, False on failure
+     */
     function createChild() {
         // TODO: write createChild function
         global $mainframe;
@@ -77,10 +93,12 @@ class WCPHelper {
             $child_db->setQuery($child_table_ddl);
             $child_db->query();
 
-            $master_db->setQuery('select * from '.$master_table);
-            $master_rows = $master_db->loadObjectList();
-            foreach($master_rows as $master_row)
-                $child_db->insertObject($child_table, $master_row);
+            if(!in_array($child_table, array('#__core_log_items', '#__core_log_searches', '#__session', '#__stats_agents'))) {
+                $master_db->setQuery('select * from '.$master_table);
+                $master_rows = $master_db->loadObjectList();
+                foreach($master_rows as $master_row)
+                    $child_db->insertObject($child_table, $master_row);
+            }
 
             // TODO: alter child table for changing auto increment value
         }
@@ -204,6 +222,12 @@ class WCPHelper {
         return true;
     }
 
+    /*
+     * Get differences between master and child
+     *
+     * @access public
+     * @return array
+     */
     function getDifferencies() {
         // TODO: write getDifferencies
     }

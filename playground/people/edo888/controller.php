@@ -10,6 +10,10 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.controller');
 
+/*
+ * Working Copy Controller class
+ *
+ */
 class WCPController extends JController {
 
     function __construct($config = array()) {
