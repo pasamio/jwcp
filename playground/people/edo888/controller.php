@@ -67,8 +67,7 @@ class WCPController extends JController {
             $database = json_decode($params->get('database'));
             // Debug: echo '<pre>', print_r($database, true), '</pre>';
             $child_db = new JDatabaseMySQL(array('host' => $database->host, 'user' => $database->user, 'password' => $database->password, 'database' => $database->database, 'prefix' => $database->prefix));
-            // Debug:
-            $child_db->debug(1);
+            // Debug: $child_db->debug(1);
 
             $child_tables = $child_db->getTableList();
             // Debug: echo '<pre>', print_r($child_tables, true), '</pre>';

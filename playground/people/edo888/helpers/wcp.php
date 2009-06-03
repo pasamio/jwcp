@@ -10,11 +10,12 @@ defined('_JEXEC') or die('Restricted access');
 
 class WCPHelper {
     function isMaster() {
-        $config = new JConfig();
+        global $mainframe;
         $db =& JFactory::getDBO();
 
-        $db->query('select id from #__wcp where sid = "' . $config->secret . '"');
-        return (bool) $db->getNumRows();
+        $db->setQuery('select id from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
+        $db->query();
+        return !(bool) $db->getNumRows();
     }
 
     function createChild() {
