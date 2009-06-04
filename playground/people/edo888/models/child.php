@@ -8,7 +8,7 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
-/*
+/**
  * Child model class
  *
  */
@@ -20,7 +20,7 @@ class WCPModelChild extends JModel {
         parent::__construct();
     }
 
-    /*
+    /**
      * Build query to get child data
      *
      * @access public
@@ -33,7 +33,7 @@ class WCPModelChild extends JModel {
         return $query;
     }
 
-    /*
+    /**
      * Build where clause
      *
      * @access public
@@ -45,7 +45,7 @@ class WCPModelChild extends JModel {
         return $where;
     }
 
-    /*
+    /**
      * Load child data
      *
      * @access public
