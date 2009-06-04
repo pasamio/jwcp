@@ -19,13 +19,10 @@ defined('_JEXEC') or die('Restricted access');
                 <input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->items); ?>);" />
             </th>
             <th>
-                <?php echo JHTML::_('grid.sort', JText::_('Name'), 'w.name', $this->lists['order_Dir'], $this->lists['order']); ?>
+                <?php echo JText::_('Path'); ?>
             </th>
             <th>
-                <?php echo JHTML::_('grid.sort', JText::_('Path'), 'w.path', $this->lists['order_Dir'], $this->lists['order']); ?>
-            </th>
-            <th width="5">
-                <?php echo JHTML::_('grid.sort', JText::_('ID'), 'w.id', $this->lists['order_Dir'], $this->lists['order']); ?>
+                <?php echo JText::_('Modified Date'); ?>
             </th>
         </tr>
     </thead>
@@ -43,13 +40,10 @@ defined('_JEXEC') or die('Restricted access');
                 <?php echo $checked; ?>
             </td>
             <td>
-                <?php echo $row->name; ?>
+                <?php echo $row[0]; ?>
             </td>
             <td>
-                <?php echo $row->path; ?>
-            </td>
-            <td>
-                <?php echo $row->id; ?>
+                <?php echo $row[1]; ?>
             </td>
         </tr>
         <?php
