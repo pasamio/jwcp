@@ -8,6 +8,10 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+/**
+ * Working Copy Table class
+ *
+ */
 class TableWCP extends JTable {
 	/** @var int */
 	var $id				= null;

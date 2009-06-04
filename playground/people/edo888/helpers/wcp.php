@@ -8,27 +8,37 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
-/*
+/**
  * Working Copy helper class
  *
  */
 class WCPHelper {
-    /*
+
+    /**
+     * @var bool
+     */
+    var $isMaster = null;
+
+    /**
      * Determines if the site is master
      *
      * @access public
      * @return boolean
      */
     function isMaster() {
-        global $mainframe;
-        $db =& JFactory::getDBO();
+        if($this->isMaster == null) {
+            global $mainframe;
+            $db =& JFactory::getDBO();
 
-        $db->setQuery('select id from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
-        $db->query();
-        return !(bool) $db->getNumRows();
+            $db->setQuery('select id from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
+            $db->query();
+            $this->isMaster = !(bool) $db->getNumRows();
+        }
+
+        return $this->isMaster;
     }
 
-    /*
+    /**
      * Creates a child from master
      *
      * @access public
@@ -222,7 +232,7 @@ class WCPHelper {
         return true;
     }
 
-    /*
+    /**
      * Get differences between master and child
      *
      * @access public

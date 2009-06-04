@@ -10,7 +10,7 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.controller');
 
-/*
+/**
  * Working Copy Controller class
  *
  */
@@ -29,6 +29,7 @@ class WCPController extends JController {
         $this->registerTask('apply', 'save');
         $this->registerTask('cancel', 'cancel');
         $this->registerTask('remove', 'remove');
+        $this->registerTask('diff', 'differencies');
     }
 
 
@@ -93,5 +94,10 @@ class WCPController extends JController {
         $msg = JText::_('Child(s) deleted successfully');
         $link = 'index.php?option=com_wcp';
         $this->setRedirect($link, $msg);
+    }
+
+    function differencies() {
+        JRequest::setVar('view', 'differencies');
+        parent::display();
     }
 }

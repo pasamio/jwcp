@@ -10,8 +10,17 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.view');
 
+/**
+ * Working Copy Childs View class
+ *
+ */
 class WCPViewChilds extends JView {
 
+    /**
+     * Display childs
+     *
+     * @access public
+     */
 	function display($tpl = null) {
 	    global $mainframe, $option;
 
@@ -21,6 +30,8 @@ class WCPViewChilds extends JView {
         JToolBarHelper::addNew();
         JToolBarHelper::editList();
         JToolBarHelper::deleteList();
+        // TODO: uncomment if(WCPHelper::isMaster())
+            JToolBarHelper::custom('diff', 'preview.png', 'preview.png', 'Differencies', '', false);
         JToolBarHelper::help('screen.wcp');
 
         $filter_order     = $mainframe->getUserStateFromRequest($option.'.filter_order',     'filter_order',     'w.id', 'cmd');

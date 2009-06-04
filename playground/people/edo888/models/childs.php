@@ -8,6 +8,10 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+/**
+ * Childs model class
+ *
+ */
 class WCPModelChilds extends JModel {
 
     var $_data = null;
@@ -16,6 +20,12 @@ class WCPModelChilds extends JModel {
         parent::__construct();
     }
 
+    /**
+     * Build query to get childs
+     *
+     * @access public
+     * @return string
+     */
     function _buildQuery() {
         $where   = $this->_buildWhere();
         $orderby = $this->_buildOrderBy();
@@ -26,12 +36,24 @@ class WCPModelChilds extends JModel {
         return $query;
     }
 
+    /**
+     * Build where clause
+     *
+     * @access public
+     * @return string
+     */
     function _buildWhere() {
         $config = new JConfig();
         $where = ' WHERE parent_sid = "' . $config->secret .'"';
         return $where;
     }
 
+    /**
+     * Build ordering
+     *
+     * @access public
+     * @return string
+     */
     function _buildOrderBy() {
         global $mainframe, $option;
 
@@ -42,6 +64,12 @@ class WCPModelChilds extends JModel {
         return $orderby;
     }
 
+    /**
+     * Load childs data
+     *
+     * @access public
+     * @return array
+     */
     function getData() {
         // Lets load the data if it doesn't already exist
         if (empty($this->_data)) {

@@ -10,13 +10,13 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.view');
 
-/*
+/**
  * Working Copy Child View class
  *
  */
 class WCPViewChild extends JView {
 
-    /*
+    /**
      * Display the child
      *
      * @access public
