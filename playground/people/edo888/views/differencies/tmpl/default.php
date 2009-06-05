@@ -21,7 +21,7 @@ defined('_JEXEC') or die('Restricted access');
             <th>
                 <?php echo JText::_('Path'); ?>
             </th>
-            <th>
+            <th width="180">
                 <?php echo JText::_('Modified Date'); ?>
             </th>
         </tr>
