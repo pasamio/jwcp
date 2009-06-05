@@ -242,18 +242,15 @@ class WCPHelper {
         // TODO: write getDifferencies
         $diffs = array();
 
-        $child_files = JFolder::files(JPATH_ROOT.'/child', '.', true, true);
-
         // TODO: get internal timer
         $internal_timer = strtotime('2009-06-04 03:28:10');
 
+        $child_files = JFolder::files(JPATH_ROOT, '.', true, true);
         foreach($child_files as $child_file) {
             $m_time = filemtime($child_file);
             if($m_time > $internal_timer)
                 $diffs[] = array(str_replace(JPATH_ROOT, '.', $child_file), date('r', $m_time));
         }
-
-        // TODO: cache the diffs array with JCache
 
         // Debug: echo '<pre>', print_r($diffs, true), '</pre>';
         return $diffs;

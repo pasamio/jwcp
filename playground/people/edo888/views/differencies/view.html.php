@@ -28,10 +28,14 @@ class WCPViewDifferencies extends JView {
 
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Differencies') . ' ]</small></small>', 'generic.png');
         JToolBarHelper::custom('patch', 'new.png', 'new.png', 'Create Patch');
+        JToolBarHelper::custom('refreshDiff', 'refresh.png', 'refresh.png', 'Refresh', '', false);
         JToolBarHelper::help('screen.wcp.differencies');
 
+        $cache =& JFactory::getCache();
+        $cache->setCaching(true);
+
 	    // Get data from the model
-        $items = WCPHelper::getDifferencies();
+        $items = $cache->call(array('WCPHelper', 'getDifferencies'));
 
         $this->assignRef('items', $items);
         parent::display($tpl);

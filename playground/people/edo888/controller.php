@@ -30,6 +30,7 @@ class WCPController extends JController {
         $this->registerTask('cancel', 'cancel');
         $this->registerTask('remove', 'remove');
         $this->registerTask('diff', 'differencies');
+        $this->registerTask('refreshDiff', 'refreshDiff');
     }
 
 
@@ -44,11 +45,8 @@ class WCPController extends JController {
     }
 
     function save() {
-        // TODO: write the save function
         WCPHelper::createChild();
-        $msg = JText::_('Child created successfully');
-        $link = 'index.php?option=com_wcp';
-        $this->setRedirect($link, $msg);
+        $this->setRedirect('index.php?option=com_wcp', JText::_('Child created successfully'));
     }
 
     function cancel() {
@@ -91,13 +89,18 @@ class WCPController extends JController {
             $wcp_table->delete($id);
         }
 
-        $msg = JText::_('Child(s) deleted successfully');
-        $link = 'index.php?option=com_wcp';
-        $this->setRedirect($link, $msg);
+        $this->setRedirect('index.php?option=com_wcp', JText::_('Child(s) deleted successfully'));
     }
 
     function differencies() {
         JRequest::setVar('view', 'differencies');
         parent::display();
+    }
+
+    function refreshDiff() {
+        $cache =& JFactory::getCache();
+        $cache->clean();
+
+        $this->setRedirect('index.php?option=com_wcp&task=differencies', JText::_('List Refreshed'));
     }
 }
