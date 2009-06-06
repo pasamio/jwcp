@@ -31,11 +31,11 @@ class WCPViewDifferencies extends JView {
         JToolBarHelper::custom('refreshDiff', 'refresh.png', 'refresh.png', 'Refresh', '', false);
         JToolBarHelper::help('screen.wcp.differencies');
 
-        $cache =& JFactory::getCache();
+        $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
         $cache->setCaching(true);
 
-	    // Get data from the model
-        $items = $cache->call(array('WCPHelper', 'getDifferencies'));
+	    // Get data from the cache
+	    $items = $cache->call(array('WCPHelper', 'getDifferencies'));
 
         $this->assignRef('items', $items);
         parent::display($tpl);

@@ -245,11 +245,25 @@ class WCPHelper {
         // TODO: get internal timer
         $internal_timer = strtotime('2009-06-04 03:28:10');
 
+        // TODO: get exclude files
+        $exclude_files = array('./child');
+
         $child_files = JFolder::files(JPATH_ROOT, '.', true, true);
         foreach($child_files as $child_file) {
-            $m_time = filemtime($child_file);
+            // Make file path relative
+            $child_file = str_replace(JPATH_ROOT, '.', $child_file);
+
+            // Make file path platform independent
+            $child_file = str_replace(DS, '/', $child_file);
+
+            // Filter files
+            foreach($exclude_files as $exclude_file)
+                if(str_replace($exclude_file, '',  $child_file) != $child_file)
+                    continue 2;
+
+            $m_time = filemtime(JPATH_ROOT.DS.$child_file);
             if($m_time > $internal_timer)
-                $diffs[] = array(str_replace(JPATH_ROOT, '.', $child_file), date('r', $m_time));
+                $diffs[] = array($child_file, date('r', $m_time));
         }
 
         // Debug: echo '<pre>', print_r($diffs, true), '</pre>';
