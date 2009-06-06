@@ -239,14 +239,20 @@ class WCPHelper {
      * @return array
      */
     function getDifferencies() {
-        // TODO: write getDifferencies
         $diffs = array();
 
         // TODO: get internal timer
         $internal_timer = strtotime('2009-06-04 03:28:10');
 
-        // TODO: get exclude files
-        $exclude_files = array('./child');
+        global $mainframe;
+
+        $db =& JFactory::getDBO();
+        // TODO: uncomment $db->setQuery("select params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
+        $db->setQuery("select params from #__wcp where sid = 'rY45uF0sJWZR2Pjf'");
+        $child = $db->loadObject();
+
+        $params = new JParameter($child->params);
+        $exclude_files = json_decode($params->get('exclude_files'));
 
         $child_files = JFolder::files(JPATH_ROOT, '.', true, true);
         foreach($child_files as $child_file) {
@@ -257,16 +263,38 @@ class WCPHelper {
             $child_file = str_replace(DS, '/', $child_file);
 
             // Filter files
-            foreach($exclude_files as $exclude_file)
-                if(str_replace($exclude_file, '',  $child_file) != $child_file)
-                    continue 2;
+            if(is_array($exclude_files)) {
+                foreach($exclude_files as $exclude_file)
+                    if(str_replace($exclude_file, '',  $child_file) != $child_file)
+                        continue 2;
+            }
 
             $m_time = filemtime(JPATH_ROOT.DS.$child_file);
             if($m_time > $internal_timer)
                 $diffs[] = array($child_file, date('r', $m_time));
         }
 
+        // TODO: Add tables differencies
+
         // Debug: echo '<pre>', print_r($diffs, true), '</pre>';
         return $diffs;
+    }
+
+    /**
+     * Create patch from the child
+     *
+     * @access public
+     */
+    function createPatch() {
+        // TODO: write the createPatch
+        $files = JRequest::getVar('cid');
+        foreach($files as $i => $file)
+            $files[$i] = JPATH_ROOT.DS.$file;
+
+        jimport('joomla.filesystem.archive');
+
+        JArchive::create(JPATH_ROOT.DS.'tmp'.DS.'wcp_patch.tar.gz', $files, 'gz', '', JPATH_ROOT);
+
+        // Debug: echo '<pre>', print_r($cid, true), '</pre>';
     }
 }

@@ -7,6 +7,9 @@
 
 // no direct access
 defined('_JEXEC') or die('Restricted access');
+
+$document =& JFactory::getDocument();
+$document->addStyleDeclaration('.icon-32-refresh {background-image:url(./templates/khepri/images/toolbar/icon-32-refresh.png);}');
 ?>
 <form action="index.php" method="post" name="adminForm">
     <table class="adminlist">
@@ -29,8 +32,10 @@ defined('_JEXEC') or die('Restricted access');
     <?php
     $k = 0;
     for($i = 0, $n = count($this->items); $i < $n; $i++) {
-        $row =& $this->items[$i];
-        $checked = JHTML::_('grid.checkedout', $row, $i);
+        $row = new JObject;
+        $row->set('path', $this->items[$i][0]);
+        $row->set('mdate', $this->items[$i][1]);
+        $checked = JHTML::_('grid.checkedout', $row, $i, 'path');
         ?>
         <tr class="<?php echo "row$k"; ?>">
             <td>
@@ -40,10 +45,10 @@ defined('_JEXEC') or die('Restricted access');
                 <?php echo $checked; ?>
             </td>
             <td>
-                <?php echo $row[0]; ?>
+                <?php echo $row->path; ?>
             </td>
             <td>
-                <?php echo $row[1]; ?>
+                <?php echo $row->mdate; ?>
             </td>
         </tr>
         <?php

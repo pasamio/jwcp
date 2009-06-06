@@ -31,6 +31,7 @@ class WCPController extends JController {
         $this->registerTask('remove', 'remove');
         $this->registerTask('diff', 'differencies');
         $this->registerTask('refreshDiff', 'refreshDiff');
+        $this->registerTask('createPatch', 'createPatch');
     }
 
 
@@ -102,5 +103,13 @@ class WCPController extends JController {
         $cache->clean('com_wcp', 'group');
 
         $this->setRedirect('index.php?option=com_wcp&task=differencies', JText::_('List Refreshed'));
+    }
+
+    function createPatch() {
+        WCPHelper::createPatch();
+
+        // TODO: Start the download
+
+        $this->setRedirect('index.php?option=com_wcp&task=differencies', JText::_('Patch Created'));
     }
 }
