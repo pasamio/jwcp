@@ -27,7 +27,7 @@ class WCPViewDifferencies extends JView {
 	    require_once(JPATH_COMPONENT.DS.'helpers'.DS.'wcp.php');
 
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Differencies') . ' ]</small></small>', 'generic.png');
-        JToolBarHelper::custom('patch', 'new.png', 'new.png', 'Create Patch');
+        JToolBarHelper::custom('createPatch', 'new.png', 'new.png', 'Create Patch');
         JToolBarHelper::custom('refreshDiff', 'refresh.png', 'refresh.png', 'Refresh', '', false);
         JToolBarHelper::help('screen.wcp.differencies');
 
