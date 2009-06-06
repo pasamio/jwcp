@@ -98,8 +98,8 @@ class WCPController extends JController {
     }
 
     function refreshDiff() {
-        $cache =& JFactory::getCache();
-        $cache->clean();
+        $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
+        $cache->clean('com_wcp', 'group');
 
         $this->setRedirect('index.php?option=com_wcp&task=differencies', JText::_('List Refreshed'));
     }
