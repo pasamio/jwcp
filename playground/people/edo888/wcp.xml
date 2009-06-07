@@ -45,6 +45,7 @@
             <filename>index.html</filename>
             <filename>admin.wcp.php</filename>
             <filename>controller.php</filename>
+            <filename>helper.php</filename>
             <filename>images/index.html</filename>
             <filename>images/wcp.png</filename>
             <filename>tables/index.html</filename>
@@ -68,8 +69,6 @@
             <filename>views/differencies/tmpl/default.php</filename>
             <filename>models/index.html</filename>
             <filename>models/childs.php</filename>
-            <filename>helpers/index.html</filename>
-            <filename>helpers/wcp.php</filename>
         </files>
 
         <languages folder="languages">
