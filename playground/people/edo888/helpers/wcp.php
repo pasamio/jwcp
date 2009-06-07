@@ -286,15 +286,19 @@ class WCPHelper {
      * @access public
      */
     function createPatch() {
-        // TODO: write the createPatch
         $files = JRequest::getVar('cid');
         foreach($files as $i => $file)
             $files[$i] = JPATH_ROOT.DS.$file;
 
-        jimport('joomla.filesystem.archive');
+        // TODO: Write tables patch part
 
+        jimport('joomla.filesystem.archive');
         JArchive::create(JPATH_ROOT.DS.'tmp'.DS.'wcp_patch.tar.gz', $files, 'gz', '', JPATH_ROOT);
 
         // Debug: echo '<pre>', print_r($cid, true), '</pre>';
+    }
+
+    function applyPatch() {
+        // TODO: write applyPatch function
     }
 }
