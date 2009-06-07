@@ -23,6 +23,7 @@ class WCPViewApplyPatch extends JView {
      */
     function display($tpl = null) {
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Apply Patch') . ' ]</small></small>', 'generic.png');
+        JToolBarHelper::custom('cancel', 'back.png', 'back.png', 'Back', '', false);
         JToolBarHelper::help('screen.wcp.applypatch');
 
         parent::display($tpl);
