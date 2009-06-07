@@ -19,7 +19,7 @@ class WCPController extends JController {
     function __construct($config = array()) {
         parent::__construct($config);
 
-        require_once(JPATH_COMPONENT.DS.'helpers'.DS.'wcp.php');
+        require_once(JPATH_COMPONENT.DS.'helper.php');
         require_once(JPATH_COMPONENT.DS.'tables'.DS.'wcp.php');
 
         // Register tasks
