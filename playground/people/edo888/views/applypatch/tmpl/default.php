@@ -27,5 +27,5 @@ defined('_JEXEC') or die('Restricted access');
     <input type="hidden" name="type" value="" />
     <input type="hidden" name="task" value="creatPatch" />
     <input type="hidden" name="option" value="com_wcp" />
-    <?php echo JHTML::_( 'form.token' ); ?>
+    <?php echo JHTML::_('form.token'); ?>
 </form>

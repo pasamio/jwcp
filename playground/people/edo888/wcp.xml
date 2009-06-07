@@ -50,6 +50,10 @@
             <filename>tables/index.html</filename>
             <filename>tables/wcp.php</filename>
             <filename>views/index.html</filename>
+            <filename>views/applypatch/index.html</filename>
+            <filename>views/applypatch/view.html.php</filename>
+            <filename>views/applypatch/tmpl/index.html</filename>
+            <filename>views/applypatch/tmpl/default.php</filename>
             <filename>views/child/index.html</filename>
             <filename>views/child/view.html.php</filename>
             <filename>views/child/tmpl/index.html</filename>
@@ -58,6 +62,10 @@
             <filename>views/childs/view.html.php</filename>
             <filename>views/childs/tmpl/index.html</filename>
             <filename>views/childs/tmpl/default.php</filename>
+            <filename>views/differencies/index.html</filename>
+            <filename>views/differencies/view.html.php</filename>
+            <filename>views/differencies/tmpl/index.html</filename>
+            <filename>views/differencies/tmpl/default.php</filename>
             <filename>models/index.html</filename>
             <filename>models/childs.php</filename>
             <filename>helpers/index.html</filename>
