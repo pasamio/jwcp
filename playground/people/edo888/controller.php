@@ -22,7 +22,7 @@ class WCPController extends JController {
         require_once(JPATH_COMPONENT.DS.'helpers'.DS.'wcp.php');
         require_once(JPATH_COMPONENT.DS.'tables'.DS.'wcp.php');
 
-        // TODO: Register Extra tasks
+        // Register tasks
         $this->registerTask('add', 'edit');
         $this->registerTask('edit', 'edit');
         $this->registerTask('save', 'save');
@@ -32,6 +32,7 @@ class WCPController extends JController {
         $this->registerTask('diff', 'differencies');
         $this->registerTask('refreshDiff', 'refreshDiff');
         $this->registerTask('createPatch', 'createPatch');
+        $this->registerTask('applyPatch', 'applyPatch');
     }
 
 
@@ -111,5 +112,10 @@ class WCPController extends JController {
         // TODO: Start the download
 
         $this->setRedirect('index.php?option=com_wcp&task=differencies', JText::_('Patch Created'));
+    }
+
+    function applyPatch() {
+        JRequest::setVar('view', 'applyPatch');
+        parent::display();
     }
 }
