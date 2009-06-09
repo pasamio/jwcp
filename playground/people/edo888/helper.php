@@ -293,12 +293,51 @@ class WCPHelper {
         // TODO: Write tables patch part
 
         jimport('joomla.filesystem.archive');
-        JArchive::create(JPATH_ROOT.DS.'tmp'.DS.'wcp_patch.tar.gz', $files, 'gz', '', JPATH_ROOT);
+        JArchive::create(JPATH_ROOT.DS.'tmp'.DS.uniqid('patch_').'.tar.gz', $files, 'gz', '', JPATH_ROOT);
 
         // Debug: echo '<pre>', print_r($cid, true), '</pre>';
     }
 
     function applyPatch() {
         // TODO: write applyPatch function
+
+        // Get the uploaded file information
+        $userfile = JRequest::getVar('patch_file', null, 'files', 'array');
+
+        // If there is no uploaded file, we have a problem...
+        if(!is_array($userfile))
+            JError::raiseWarning('SOME_ERROR_CODE', JText::_('No file selected'));
+
+        // Check if there was a problem uploading the file.
+        if($userfile['error'] or $userfile['size'] < 1)
+            JError::raiseWarning('SOME_ERROR_CODE', JText::_('Cannot upload the file'));
+
+        // Build the appropriate paths
+        $tmp_dest = JPATH_ROOT.DS.'tmp'.DS.$userfile['name'];
+        $tmp_src  = $userfile['tmp_name'];
+
+        // Move uploaded file
+        jimport('joomla.filesystem.file');
+        JFile::upload($tmp_src, $tmp_dest);
+
+        // Unpack the patch file
+        $patch_dest = JPATH_ROOT.DS.'tmp'.DS.uniqid('patch_');
+        jimport('joomla.filesystem.archive');
+        JArchive::extract($tmp_dest, $patch_dest);
+
+        // Replace files
+        $files = JFolder::files($patch_dest, '.', true, true);
+        // Debug: echo '<pre>', print_r($files, true), '</pre>';
+        foreach($files as $file) {
+            // Debug: echo '<pre>', $file, ' -> ', str_replace($patch_dest, JPATH_ROOT, $file), '</pre>';
+            JFile::delete(str_replace($patch_dest, JPATH_ROOT, $file));
+            JFile::move($file, str_replace($patch_dest, JPATH_ROOT, $file));
+        }
+
+        // Remove tmp files
+        JFile::delete($tmp_dest);
+        JFolder::delete($patch_dest);
+
+        // TODO: Run queries
     }
 }
