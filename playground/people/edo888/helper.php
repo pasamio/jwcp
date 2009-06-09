@@ -298,19 +298,28 @@ class WCPHelper {
         // Debug: echo '<pre>', print_r($cid, true), '</pre>';
     }
 
+    /**
+     * Apply the patch to the master
+     *
+     * @return bool
+     */
     function applyPatch() {
-        // TODO: write applyPatch function
+        // TODO: Write error messages
 
         // Get the uploaded file information
         $userfile = JRequest::getVar('patch_file', null, 'files', 'array');
 
         // If there is no uploaded file, we have a problem...
-        if(!is_array($userfile))
+        if(empty($userfile['name'])) {
             JError::raiseWarning('SOME_ERROR_CODE', JText::_('No file selected'));
+            return false;
+        }
 
         // Check if there was a problem uploading the file.
-        if($userfile['error'] or $userfile['size'] < 1)
+        if($userfile['error'] or $userfile['size'] < 1) {
             JError::raiseWarning('SOME_ERROR_CODE', JText::_('Cannot upload the file'));
+            return false;
+        }
 
         // Build the appropriate paths
         $tmp_dest = JPATH_ROOT.DS.'tmp'.DS.$userfile['name'];
@@ -339,5 +348,7 @@ class WCPHelper {
         JFolder::delete($patch_dest);
 
         // TODO: Run queries
+
+        return true;
     }
 }

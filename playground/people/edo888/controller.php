@@ -122,8 +122,10 @@ class WCPController extends JController {
             // Check for request forgeries
             JRequest::checkToken() or jexit('Invalid Token');
 
-            WCPHelper::applyPatch();
-            $this->setRedirect('index.php?option=com_wcp', JText::_('Patch Applied Successfully'));
+            if(WCPHelper::applyPatch())
+                $this->setRedirect('index.php?option=com_wcp', JText::_('Patch Applied Successfully'));
+            else
+                $this->setRedirect('index.php?option=com_wcp&task=applyPatch');
         }
     }
 }
