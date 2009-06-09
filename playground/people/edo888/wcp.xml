@@ -63,10 +63,10 @@
             <filename>views/childs/view.html.php</filename>
             <filename>views/childs/tmpl/index.html</filename>
             <filename>views/childs/tmpl/default.php</filename>
-            <filename>views/differencies/index.html</filename>
-            <filename>views/differencies/view.html.php</filename>
-            <filename>views/differencies/tmpl/index.html</filename>
-            <filename>views/differencies/tmpl/default.php</filename>
+            <filename>views/differences/index.html</filename>
+            <filename>views/differences/view.html.php</filename>
+            <filename>views/differences/tmpl/index.html</filename>
+            <filename>views/differences/tmpl/default.php</filename>
             <filename>models/index.html</filename>
             <filename>models/childs.php</filename>
         </files>
