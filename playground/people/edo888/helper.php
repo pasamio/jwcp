@@ -15,27 +15,18 @@ defined('_JEXEC') or die('Restricted access');
 class WCPHelper {
 
     /**
-     * @var bool
-     */
-    var $isMaster = null;
-
-    /**
      * Determines if the site is master
      *
      * @access public
      * @return boolean
      */
     function isMaster() {
-        if($this->isMaster == null) {
-            global $mainframe;
-            $db =& JFactory::getDBO();
+        global $mainframe;
+        $db =& JFactory::getDBO();
 
-            $db->setQuery('select id from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
-            $db->query();
-            $this->isMaster = !(bool) $db->getNumRows();
-        }
-
-        return $this->isMaster;
+        $db->setQuery('select id from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
+        $db->query();
+        return !(bool) $db->getNumRows();
     }
 
     /**
