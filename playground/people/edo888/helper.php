@@ -239,7 +239,7 @@ class WCPHelper {
 
         $db =& JFactory::getDBO();
         // TODO: uncomment $db->setQuery("select params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
-        $db->setQuery("select params from #__wcp where sid = 'rY45uF0sJWZR2Pjf'");
+        $db->setQuery("select params from #__wcp limit 1");
         $child = $db->loadObject();
 
         $params = new JParameter($child->params);
@@ -275,6 +275,7 @@ class WCPHelper {
      * Create patch from the child
      *
      * @access public
+     * @return bool
      */
     function createPatch() {
         $files = JRequest::getVar('cid');
@@ -287,11 +288,14 @@ class WCPHelper {
         JArchive::create(JPATH_ROOT.DS.'tmp'.DS.uniqid('patch_').'.tar.gz', $files, 'gz', '', JPATH_ROOT);
 
         // Debug: echo '<pre>', print_r($cid, true), '</pre>';
+
+        return true;
     }
 
     /**
      * Apply the patch to the master
      *
+     * @access public
      * @return bool
      */
     function applyPatch() {
@@ -321,9 +325,10 @@ class WCPHelper {
         JFile::upload($tmp_src, $tmp_dest);
 
         // Unpack the patch file
+        $patch_src = $tmp_dest;
         $patch_dest = JPATH_ROOT.DS.'tmp'.DS.uniqid('patch_');
         jimport('joomla.filesystem.archive');
-        JArchive::extract($tmp_dest, $patch_dest);
+        JArchive::extract($patch_src, $patch_dest);
 
         // Replace files
         $files = JFolder::files($patch_dest, '.', true, true);
@@ -335,7 +340,7 @@ class WCPHelper {
         }
 
         // Remove tmp files
-        JFile::delete($tmp_dest);
+        JFile::delete($patch_src);
         JFolder::delete($patch_dest);
 
         // TODO: Run queries
