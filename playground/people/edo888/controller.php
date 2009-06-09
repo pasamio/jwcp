@@ -115,7 +115,15 @@ class WCPController extends JController {
     }
 
     function applyPatch() {
-        JRequest::setVar('view', 'applyPatch');
-        parent::display();
+        if(!JRequest::getVar('submitted', false)) {
+            JRequest::setVar('view', 'applyPatch');
+            parent::display();
+        } else {
+            // Check for request forgeries
+            JRequest::checkToken() or jexit('Invalid Token');
+
+            WCPHelper::applyPatch();
+            $this->setRedirect('index.php?option=com_wcp', JText::_('Patch Applied Successfully'));
+        }
     }
 }
