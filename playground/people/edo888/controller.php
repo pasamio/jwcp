@@ -29,7 +29,7 @@ class WCPController extends JController {
         $this->registerTask('apply', 'save');
         $this->registerTask('cancel', 'cancel');
         $this->registerTask('remove', 'remove');
-        $this->registerTask('diff', 'differencies');
+        $this->registerTask('diff', 'differences');
         $this->registerTask('refreshDiff', 'refreshDiff');
         $this->registerTask('createPatch', 'createPatch');
         $this->registerTask('applyPatch', 'applyPatch');
@@ -94,8 +94,8 @@ class WCPController extends JController {
         $this->setRedirect('index.php?option=com_wcp', JText::_('Child(s) deleted successfully'));
     }
 
-    function differencies() {
-        JRequest::setVar('view', 'differencies');
+    function differences() {
+        JRequest::setVar('view', 'differences');
         parent::display();
     }
 
@@ -103,7 +103,7 @@ class WCPController extends JController {
         $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
         $cache->clean('com_wcp', 'group');
 
-        $this->setRedirect('index.php?option=com_wcp&task=differencies', JText::_('List Refreshed'));
+        $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('List Refreshed'));
     }
 
     function createPatch() {
@@ -111,7 +111,7 @@ class WCPController extends JController {
 
         // TODO: Start the download
 
-        $this->setRedirect('index.php?option=com_wcp&task=differencies', JText::_('Patch Created'));
+        $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Patch Created'));
     }
 
     function applyPatch() {

@@ -238,7 +238,7 @@ class WCPHelper {
      * @access public
      * @return array
      */
-    function getDifferencies() {
+    function getDifferences() {
         $diffs = array();
 
         // TODO: get internal timer
@@ -274,7 +274,7 @@ class WCPHelper {
                 $diffs[] = array($child_file, date('r', $m_time));
         }
 
-        // TODO: Add tables differencies
+        // TODO: Add tables differences
 
         // Debug: echo '<pre>', print_r($diffs, true), '</pre>';
         return $diffs;

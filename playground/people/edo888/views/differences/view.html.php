@@ -11,28 +11,28 @@ defined('_JEXEC') or die('Restricted access');
 jimport('joomla.application.component.view');
 
 /**
- * Working Copy Differencies View class
+ * Working Copy Differences View class
  *
  */
-class WCPViewDifferencies extends JView {
+class WCPViewDifferences extends JView {
 
     /**
-     * Display differencies
+     * Display differences
      *
      * @access public
      */
 	function display($tpl = null) {
-        JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Differencies') . ' ]</small></small>', 'generic.png');
+        JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Differences') . ' ]</small></small>', 'generic.png');
         JToolBarHelper::custom('createPatch', 'new.png', 'new.png', 'Create Patch');
         JToolBarHelper::custom('refreshDiff', 'refresh.png', 'refresh.png', 'Refresh', '', false);
         JToolBarHelper::custom('cancel', 'back.png', 'back.png', 'Back', '', false);
-        JToolBarHelper::help('screen.wcp.differencies');
+        JToolBarHelper::help('screen.wcp.differences');
 
         $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
         $cache->setCaching(true);
 
 	    // Get data from the cache
-	    $items = $cache->call(array('WCPHelper', 'getDifferencies'));
+	    $items = $cache->call(array('WCPHelper', 'getDifferences'));
 
         $this->assignRef('items', $items);
         parent::display($tpl);
