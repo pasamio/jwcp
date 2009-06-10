@@ -7,6 +7,9 @@
 
 // no direct access
 defined('_JEXEC') or die('Restricted access');
+
+$document =& JFactory::getDocument();
+$document->addStyleDeclaration('.icon-32-download {background-image:url(./templates/khepri/images/toolbar/icon-32-download.png);}');
 ?>
 <form action="index.php" method="post" name="adminForm">
     <table class="adminlist">
