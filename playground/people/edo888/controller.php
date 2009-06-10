@@ -109,9 +109,7 @@ class WCPController extends JController {
     function createPatch() {
         WCPHelper::createPatch();
 
-        // TODO: Start the download
-
-        $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Patch Created'));
+        //$this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Patch Created'));
     }
 
     function applyPatch() {

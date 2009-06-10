@@ -111,24 +111,12 @@ class WCPHelper {
         // Debug: echo '<pre>', print_r($master_folders, true), '</pre>';
         // Debug: echo '<pre>', print_r($master_files, true), '</pre>';
 
-        if(JRequest::getBool('ftp_enable')) {
-            // TODO: Write recursive copy method for FTP layer
-            $child_fs = new JFTP();
-            $child_fs->connect(JRequest::getVar('ftp_host'), JRequest::getVar('ftp_port'));
-            $child_fs->login(JRequest::getVar('ftp_user'), JRequest::getVar('ftp_pass'));
-            $child_fs->mkdir('child path');
-            $child_fs->chdir('child path');
-            foreach($master_folders as $child_folder)
-                $child_fs->mkdir($child_folder); // TODO: make recursive
-            foreach($master_files as $master_file)
-                $child_fs->store($master_file, $master_file);
-        } else {
-            jimport('joomla.filesystem.file');
-            foreach($master_folders as $master_folder)
-                JFolder::create(str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_folder));
-            foreach($master_files as $master_file)
-                JFile::copy($master_file, str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_file), '', false);
-        }
+        jimport('joomla.filesystem.file');
+        foreach($master_folders as $master_folder)
+            JFolder::create(str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_folder));
+        foreach($master_files as $master_file)
+            JFile::copy($master_file, str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_file), '', false);
+
 
         // TODO: Configure child
         $config = new JRegistry('config');
@@ -275,7 +263,7 @@ class WCPHelper {
      * Create patch from the child
      *
      * @access public
-     * @return bool
+     * @return boolean
      */
     function createPatch() {
         $files = JRequest::getVar('cid');
@@ -285,9 +273,22 @@ class WCPHelper {
         // TODO: Write tables patch part
 
         jimport('joomla.filesystem.archive');
-        JArchive::create(JPATH_ROOT.DS.'tmp'.DS.uniqid('patch_').'.tar.gz', $files, 'gz', '', JPATH_ROOT);
+        $patch_file = uniqid('patch_').'.tar.gz';
+        JArchive::create(JPATH_ROOT.DS.'tmp'.DS.$patch_file, $files, 'gz', '', JPATH_ROOT);
 
         // Debug: echo '<pre>', print_r($cid, true), '</pre>';
+
+        $document =& JFactory::getDocument();
+        $document->addStyleDeclaration('.icon-48-download {background-image:url(./templates/khepri/images/header/icon-48-install.png);}');
+        JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Download Patch') . ' ]</small></small>', 'download.png');
+        JToolBarHelper::custom('cancel', 'back.png', 'back.png', 'Back', '', false);
+        JToolBarHelper::help('screen.wcp.createPatch');
+
+        echo JText::_('Download will start automatically') . ' <a href="' . JURI::root() . 'tmp/' . $patch_file . '"> ' . JText::_('Start download manually') . '</a>';
+        echo '<iframe src="' . JURI::root() . 'tmp/' . $patch_file . '" style="display:none;"></iframe>';
+
+        // Return to Create Patch interface
+        $document->setMetaData('REFRESH', '5; url='.JURI::base().'index.php?option=com_wcp&view=differences', true);
 
         return true;
     }
@@ -296,7 +297,7 @@ class WCPHelper {
      * Apply the patch to the master
      *
      * @access public
-     * @return bool
+     * @return boolean
      */
     function applyPatch() {
         // TODO: Write error messages
