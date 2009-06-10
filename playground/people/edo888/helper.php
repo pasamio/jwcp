@@ -348,4 +348,13 @@ class WCPHelper {
 
         return true;
     }
+
+    /**
+     * Revert the child
+     *
+     * @return boolean
+     */
+    function revertChild() {
+        // TODO: Write revertChild function
+    }
 }

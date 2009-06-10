@@ -33,6 +33,7 @@ class WCPController extends JController {
         $this->registerTask('refreshDiff', 'refreshDiff');
         $this->registerTask('createPatch', 'createPatch');
         $this->registerTask('applyPatch', 'applyPatch');
+        $this->registerTask('revertChild', 'revertChild');
     }
 
 
@@ -125,5 +126,9 @@ class WCPController extends JController {
             else
                 $this->setRedirect('index.php?option=com_wcp&task=applyPatch');
         }
+    }
+
+    function revertChild() {
+        // TODO: Write revertChild function
     }
 }
