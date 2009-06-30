@@ -26,7 +26,7 @@ class WCPViewChild extends JView {
         JToolBarHelper::save();
         JToolBarHelper::apply();
         JRequest::getVar('task', 'edit') == 'edit' ? JToolBarHelper::cancel('cancel', 'Close') : JToolBarHelper::cancel();
-        JToolBarHelper::help('screen.wcp.new');
+        JToolBarHelper::help('screen.wcp.new', true);
 
 	    // Get data from the model
         $child =& $this->get('Data');

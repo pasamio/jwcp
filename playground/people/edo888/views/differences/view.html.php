@@ -27,7 +27,7 @@ class WCPViewDifferences extends JView {
         JToolBarHelper::custom('revertChild', 'restore.png', 'restore.png', 'Revert Child');
         JToolBarHelper::custom('refreshDiff', 'refresh.png', 'refresh.png', 'Refresh', '', false);
         JToolBarHelper::custom('cancel', 'back.png', 'back.png', 'Back', '', false);
-        JToolBarHelper::help('screen.wcp.differences');
+        JToolBarHelper::help('screen.wcp.differences', true);
 
         $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
         $cache->setCaching(true);
