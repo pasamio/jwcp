@@ -30,6 +30,18 @@ class WCPHelper {
     }
 
     /**
+     * Returns the internal time, against which changes
+     * will be determined
+     *
+     * @access public
+     * @return int
+     */
+    function getInternalTime() {
+        // TODO: Write get internal time function
+        return strtotime('2009-06-04 03:28:10');
+    }
+
+    /**
      * Creates a child from master
      *
      * @access public
@@ -221,7 +233,7 @@ class WCPHelper {
         $diffs = array();
 
         // TODO: get internal timer
-        $internal_timer = strtotime('2009-06-04 03:28:10');
+        $internal_timer = WCPHelper::getInternalTime();
 
         global $mainframe;
 
@@ -352,6 +364,7 @@ class WCPHelper {
     /**
      * Revert the child
      *
+     * @access public
      * @return boolean
      */
     function revertChild() {
