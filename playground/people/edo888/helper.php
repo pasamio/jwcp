@@ -390,4 +390,15 @@ class WCPHelper {
         return true;
 
     }
+
+    /**
+     * Synchronize the child
+     *
+     * @access public
+     * @return boolean
+     */
+    function syncChild() {
+        // TODO: Write syncChild function
+
+    }
 }
