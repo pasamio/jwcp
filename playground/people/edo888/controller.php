@@ -130,5 +130,7 @@ class WCPController extends JController {
 
     function revertChild() {
         // TODO: Write revertChild function
+        WCPHelper::revertChild();
+        $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Revert Complete'));
     }
 }
