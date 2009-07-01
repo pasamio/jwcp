@@ -38,6 +38,7 @@ class WCPHelper {
      */
     function getInternalTime() {
         // TODO: Write get internal time function
+        return filemtime(JPATH_ROOT.DS.'configuration.php');
         return strtotime('2009-06-04 03:28:10');
     }
 
@@ -288,13 +289,13 @@ class WCPHelper {
         $patch_file = uniqid('patch_').'.tar.gz';
         JArchive::create(JPATH_ROOT.DS.'tmp'.DS.$patch_file, $files, 'gz', '', JPATH_ROOT);
 
-        // Debug: echo '<pre>', print_r($cid, true), '</pre>';
+        // Debug: echo '<pre>', print_r($files, true), '</pre>';
 
         $document =& JFactory::getDocument();
         $document->addStyleDeclaration('.icon-48-download {background-image:url(./templates/khepri/images/header/icon-48-install.png);}');
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Download Patch') . ' ]</small></small>', 'download.png');
         JToolBarHelper::custom('cancel', 'back.png', 'back.png', 'Back', '', false);
-        JToolBarHelper::help('screen.wcp.createPatch');
+        JToolBarHelper::help('screen.wcp.createPatch', true);
 
         echo JText::_('Download will start automatically') . ' <a href="' . JURI::root() . 'tmp/' . $patch_file . '"> ' . JText::_('Start download manually') . '</a>';
         echo '<iframe src="' . JURI::root() . 'tmp/' . $patch_file . '" style="display:none;"></iframe>';
@@ -369,5 +370,24 @@ class WCPHelper {
      */
     function revertChild() {
         // TODO: Write revertChild function
+        global $mainframe;
+
+        // TODO: Write tables revert part
+
+        $db =& JFactory::getDBO();
+        $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
+        $path = $db->loadResult();
+
+        $files = JRequest::getVar('cid');
+        $master_root = realpath(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
+
+        // Debug: echo '<pre>', print_r($files, true), '</pre>';
+
+        jimport('joomla.filesystem.file');
+        foreach($files as $i => $file)
+            JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file);
+
+        return true;
+
     }
 }
