@@ -131,7 +131,7 @@ class WCPController extends JController {
 
     function revertChild() {
         WCPHelper::revertChild();
-        $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Revert Complete'));
+        $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Revert completed'));
     }
 
     function syncChild() {

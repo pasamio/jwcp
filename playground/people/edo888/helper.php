@@ -228,9 +228,10 @@ class WCPHelper {
      * Get differences between master and child
      *
      * @access public
+     * @param string The path, in which it will try to find modified files
      * @return array
      */
-    function getDifferences() {
+    function getDifferences($path = JPATH_ROOT) {
         $diffs = array();
 
         // TODO: get internal timer
@@ -246,10 +247,11 @@ class WCPHelper {
         $params = new JParameter($child->params);
         $exclude_files = json_decode($params->get('exclude_files'));
 
-        $child_files = JFolder::files(JPATH_ROOT, '.', true, true);
+        // TODO: optimize this part to not iterate in excluded files/folders
+        $child_files = JFolder::files($path, '.', true, true);
         foreach($child_files as $child_file) {
             // Make file path relative
-            $child_file = str_replace(JPATH_ROOT, '.', $child_file);
+            $child_file = str_replace($path, '.', $child_file);
 
             // Make file path platform independent
             $child_file = str_replace(DS, '/', $child_file);
@@ -261,7 +263,7 @@ class WCPHelper {
                         continue 2;
             }
 
-            $m_time = filemtime(JPATH_ROOT.DS.$child_file);
+            $m_time = filemtime($path.DS.$child_file);
             if($m_time > $internal_timer)
                 $diffs[] = array($child_file, date('r', $m_time));
         }
@@ -313,7 +315,7 @@ class WCPHelper {
      * @return boolean
      */
     function applyPatch() {
-        // TODO: Write error messages
+        // TODO: Write error handling
 
         // Get the uploaded file information
         $userfile = JRequest::getVar('patch_file', null, 'files', 'array');
@@ -369,7 +371,6 @@ class WCPHelper {
      * @return boolean
      */
     function revertChild() {
-        // TODO: Write revertChild function
         global $mainframe;
 
         // TODO: Write tables revert part
@@ -379,7 +380,7 @@ class WCPHelper {
         $path = $db->loadResult();
 
         $files = JRequest::getVar('cid');
-        $master_root = realpath(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
+        $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
 
         // Debug: echo '<pre>', print_r($files, true), '</pre>';
 
@@ -398,7 +399,37 @@ class WCPHelper {
      * @return boolean
      */
     function syncChild() {
-        // TODO: Write syncChild function
+        global $mainframe;
+
+        $db =& JFactory::getDBO();
+        $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
+        $path = $db->loadResult();
+
+        // Get all files on master and child, which are newer than the internal timer
+        // then update to child the newer ones, but keep those which are already modified
+        // on child
+        $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
+        $diffs_master = WCPHelper::getDifferences($master_root);
+        $diffs_child = WCPHelper::getDifferences();
+
+        foreach($diffs_master as $i => $diff_master)
+            $diffs_master[$i] = $diff_master[0];
+
+        foreach($diffs_child as $i => $diff_child)
+            $diffs_child[$i] = $diff_child[0];
+
+        $diffs = array_diff($diffs_master, $diffs_child);
+
+        // Debug: echo '<pre>', print_r($diffs, ture), '</pre>';
+
+        jimport('joomla.filesystem.file');
+        foreach($diffs as $file)
+            JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file);
+
+        // TODO: Treat configuration.php and other special files cases separately
+
+        // TODO: Write tables sync part
+
 
     }
 }
