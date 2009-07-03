@@ -97,8 +97,6 @@ class WCPHelper {
         $master_tables = $master_db->getTableList();
         // Debug: echo '<pre>', print_r($master_tables, true), '</pre>';
         foreach($master_tables as $master_table) {
-            // TODO: alter master table for adding create date and last modified date fields
-
             $master_table_ddl = array_pop($master_db->getTableCreate($master_table));
             $child_table = str_replace($master_db->_table_prefix, '#__', $master_table);
             $child_table_ddl = preg_replace('/'.$master_table.'/', $child_table, $master_table_ddl, 1);
@@ -114,7 +112,24 @@ class WCPHelper {
                     $child_db->insertObject($child_table, $master_row);
             }
 
-            // TODO: alter child table for changing auto increment value
+            // TODO: Create triggers for each child table
+            $query = "create trigger on_insert_$child_table after insert on $child_table for each row " .
+                "begin " .
+                "end";
+            $child_db->setQuery($query);
+            $child_db->query();
+
+            $query = "create trigger on_update_$child_table after update on $child_table for each row " .
+                "begin " .
+                "end";
+            $child_db->setQuery($query);
+            $child_db->query();
+
+            $query = "create trigger on_delete_$child_table after delete on $child_table for each row " .
+                "begin " .
+                "end";
+            $child_db->setQuery($query);
+            $child_db->query();
         }
 
         // Copy all files and folders to the child
@@ -429,7 +444,6 @@ class WCPHelper {
         // TODO: Treat configuration.php and other special files cases separately
 
         // TODO: Write tables sync part
-
 
     }
 }
