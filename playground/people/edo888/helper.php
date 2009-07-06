@@ -43,6 +43,25 @@ class WCPHelper {
     }
 
     /**
+     * Determines the primary key field of the table
+     *
+     * @access public
+     * @param object DBO
+     * @param string Table name
+     * @return string
+     */
+    function getPrimaryKeyField($db, $table) {
+        $db->setQuery('show columns from ' . $table);
+        $fields = $db->loadObjectList();
+        foreach($fields as $field) {
+            if($field->Key == 'PRI')
+                return $field->Field;
+        }
+
+        return '';
+    }
+
+    /**
      * Creates a child from master
      *
      * @access public
@@ -93,9 +112,26 @@ class WCPHelper {
 
         // Debug: echo '<pre>', print_r($wcp_table, true), '</pre>';
 
-        // Copy all tables w/ data to the child
+        // Get all master tables
         $master_tables = $master_db->getTableList();
         // Debug: echo '<pre>', print_r($master_tables, true), '</pre>';
+
+        // Create #__wcp_log_queries table
+        $child_db->setQuery("create table #__log_queries (
+                `id` int(11) unsigned not null auto_increment,
+                `action` enum('insert', 'update', 'delete') not null,
+                `table_name` varchar(20) not null,
+                `table_key` varchar(20) not null,
+                `value` varchar(20) not null,
+                `date` timestamp not null default current_timestamp,
+                primary key (`id`),
+                unique key `id` (`id`),
+                unique key `repeat` (`action`, `table_name`, `value`)
+            ) engine=MyISAM default charset=utf8
+        ");
+        $child_db->query();
+
+        // Copy all tables w/ data to the child
         foreach($master_tables as $master_table) {
             $master_table_ddl = array_pop($master_db->getTableCreate($master_table));
             $child_table = str_replace($master_db->_table_prefix, '#__', $master_table);
@@ -110,33 +146,33 @@ class WCPHelper {
                 $master_rows = $master_db->loadObjectList();
                 foreach($master_rows as $master_row)
                     $child_db->insertObject($child_table, $master_row);
+
+                // TODO: Create triggers for each child table
+                $child_table = str_replace('#__', $child_db->_table_prefix, $child_table);
+                $key = WCPHelper::getPrimaryKeyField($child_db, $child_table);
+                if($key != '') {
+                    $child_db->setQuery("create trigger on_insert_$child_table after insert on $child_table for each row " .
+                        "replace into #__log_queries (action, table_name, table_key, value) values('insert', '$child_table', '$key', new.$key)");
+                    $child_db->query();
+
+                    $child_db->setQuery("create trigger on_update_$child_table after update on $child_table for each row " .
+                        "replace into #__log_queries (action, table_name, table_key, value) values('update', '$child_table', '$key', old.$key)");
+                    $child_db->query();
+
+                    $child_db->setQuery("create trigger on_delete_$child_table after delete on $child_table for each row " .
+                        "replace into #__log_queries (action, table_name, table_key, value) values('delete', '$child_table', '$key', old.$key)");
+                    $child_db->query();
+                }
             }
 
-            // TODO: Create triggers for each child table
-            $query = "create trigger on_insert_$child_table after insert on $child_table for each row " .
-                "begin " .
-                "end";
-            $child_db->setQuery($query);
-            $child_db->query();
-
-            $query = "create trigger on_update_$child_table after update on $child_table for each row " .
-                "begin " .
-                "end";
-            $child_db->setQuery($query);
-            $child_db->query();
-
-            $query = "create trigger on_delete_$child_table after delete on $child_table for each row " .
-                "begin " .
-                "end";
-            $child_db->setQuery($query);
-            $child_db->query();
+            // TODO: alter child table for changing auto increment value
         }
 
         // Copy all files and folders to the child
         $master_folders = JFolder::folders(JPATH_ROOT, '.', true, true);
-        $master_files = JFolder::files(JPATH_ROOT, '.', true, true);
-
         // Debug: echo '<pre>', print_r($master_folders, true), '</pre>';
+
+        $master_files = JFolder::files(JPATH_ROOT, '.', true, true);
         // Debug: echo '<pre>', print_r($master_files, true), '</pre>';
 
         jimport('joomla.filesystem.file');
