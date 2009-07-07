@@ -62,6 +62,31 @@ class WCPHelper {
     }
 
     /**
+     * Get the exclude files list of the child
+     *
+     * @access public
+     * @param string The path, relative to which it will generate the exclude files
+     * @return array
+     */
+    function getExcludeFiles($path = JPATH_ROOT) {
+        global $mainframe;
+
+        $db =& JFactory::getDBO();
+        $db->setQuery("select path, params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
+        $child = $db->loadObject();
+
+        $params = new JParameter($child->params);
+        $exclude_files = json_decode($params->get('exclude_files'));
+        $exclude_files[] = $child->path;
+        foreach($exclude_files as $i => $exclude_file) {
+            $exclude_files[$i] = str_replace('./', $path . DS, $exclude_file);
+            $exclude_files[$i] = str_replace('/', DS, $exclude_files[$i]);
+        }
+
+        return $exclude_files;
+    }
+
+    /**
      * Creates a child from master
      *
      * @access public
@@ -287,31 +312,16 @@ class WCPHelper {
         // Get internal timer
         $internal_timer = WCPHelper::getInternalTime();
 
-        global $mainframe;
+        // Get exclude files list
+        $exclude_files = WCPHelper::getExcludeFiles();
 
-        $db =& JFactory::getDBO();
-        $db->setQuery("select path, params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
-        $child = $db->loadObject();
-
-        $params = new JParameter($child->params);
-        $exclude_files = json_decode($params->get('exclude_files'));
-        $exclude_files[] = $child->path;
-
-        // TODO: optimize this part to not iterate in excluded files/folders
-        $child_files = JFolder::files($path, '.', true, true);
+        $child_files = JFolderWCP::files($path, $exclude_files);
         foreach($child_files as $child_file) {
             // Make file path relative
             $child_file = str_replace($path, '.', $child_file);
 
-            // Make file path platform independent
+            // Make file path unix format
             $child_file = str_replace(DS, '/', $child_file);
-
-            // Filter files
-            if(is_array($exclude_files)) {
-                foreach($exclude_files as $exclude_file)
-                    if(str_replace($exclude_file, '',  $child_file) != $child_file)
-                        continue 2;
-            }
 
             $m_time = filemtime($path.DS.$child_file);
             if($m_time > $internal_timer)
@@ -499,5 +509,50 @@ class WCPHelper {
 
         // TODO: Write tables sync part
 
+    }
+
+    /**
+     * Function for test purposes
+     * TODO: Remove this function
+     *
+     * @access public
+     * @return
+     */
+    function test() {
+        echo '<pre>', print_r(WCPHelper::getExcludeFiles(), true), '</pre>';
+        echo '<pre>', print_r(JFolderWCP::files(JPATH_ROOT, array_merge(WCPHelper::getExcludeFiles(), array('.svn', 'CVS'))), true), '</pre>';
+    }
+}
+
+class JFolderWCP {
+    /**
+     * Utility function to read the files in a folder.
+     *
+     * @param string The full path of the folder to read
+     * @param array The exclude list
+     * @return array Files and folders in the given folder
+     * @access public
+     */
+    function files($path, $exclude = array('.svn', 'CVS')) {
+        // Initialize variables
+        $arr = array();
+
+        // read the source directory
+        $handle = opendir($path);
+        while(($file = readdir($handle)) !== false) {
+            if($file != '.' and $file != '..' and !in_array($file, $exclude)) {
+                $dir = $path . DS . $file;
+                if(!in_array($dir, $exclude)) {
+                    if(is_dir($dir))
+                        $arr = array_merge($arr, JFolderWCP::files($dir, $exclude));
+                    else
+                        $arr[] = $dir;
+                }
+            }
+        }
+        closedir($handle);
+
+        asort($arr);
+        return $arr;
     }
 }
