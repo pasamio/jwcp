@@ -127,8 +127,7 @@ class WCPHelper {
                 primary key (`id`),
                 unique key `id` (`id`),
                 unique key `repeat` (`action`, `table_name`, `value`)
-            ) engine=MyISAM default charset=utf8
-        ");
+            ) engine=MyISAM default charset=utf8");
         $child_db->query();
 
         // Copy all tables w/ data to the child
@@ -147,7 +146,7 @@ class WCPHelper {
                 foreach($master_rows as $master_row)
                     $child_db->insertObject($child_table, $master_row);
 
-                // TODO: Create triggers for each child table
+                // Create triggers for child table
                 $child_table = str_replace('#__', $child_db->_table_prefix, $child_table);
                 $key = WCPHelper::getPrimaryKeyField($child_db, $child_table);
                 if($key != '') {
@@ -163,9 +162,9 @@ class WCPHelper {
                         "replace into #__log_queries (action, table_name, table_key, value) values('delete', '$child_table', '$key', old.$key)");
                     $child_db->query();
                 }
-            }
 
-            // TODO: alter child table for changing auto increment value
+                // TODO: Alter child table for changing auto increment value
+            }
         }
 
         // Copy all files and folders to the child
@@ -276,7 +275,7 @@ class WCPHelper {
     }
 
     /**
-     * Get differences between master and child
+     * Get file system differences between master and child
      *
      * @access public
      * @param string The path, in which it will try to find modified files
@@ -285,18 +284,18 @@ class WCPHelper {
     function getDifferences($path = JPATH_ROOT) {
         $diffs = array();
 
-        // TODO: get internal timer
+        // Get internal timer
         $internal_timer = WCPHelper::getInternalTime();
 
         global $mainframe;
 
         $db =& JFactory::getDBO();
-        // TODO: uncomment $db->setQuery("select params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
-        $db->setQuery("select params from #__wcp limit 1");
+        $db->setQuery("select path, params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
         $child = $db->loadObject();
 
         $params = new JParameter($child->params);
         $exclude_files = json_decode($params->get('exclude_files'));
+        $exclude_files[] = $child->path;
 
         // TODO: optimize this part to not iterate in excluded files/folders
         $child_files = JFolder::files($path, '.', true, true);
@@ -319,11 +318,31 @@ class WCPHelper {
                 $diffs[] = array($child_file, date('r', $m_time));
         }
 
-        // TODO: Add tables differences
-
         // Debug: echo '<pre>', print_r($diffs, true), '</pre>';
         return $diffs;
     }
+
+    /**
+     * Get table differences between master and child
+     *
+     * @access public
+     * @return array
+     */
+    function getTableDifferences() {
+        $diffs = array();
+
+        // Get internal timer
+        $internal_timer = date('Y-m-d H:i:s', WCPHelper::getInternalTime());
+
+        $db =& JFactory::getDBO();
+        $db->setQuery("select id, action, table_name, table_key, value, unix_timestamp(date) as mdate from #__log_queries where date > '$internal_timer' order by date asc");
+        $diffs = $db->loadObjectList();
+
+        // TODO: Get added/deleted tables
+
+        return $diffs;
+    }
+
 
     /**
      * Create patch from the child
@@ -470,7 +489,6 @@ class WCPHelper {
             $diffs_child[$i] = $diff_child[0];
 
         $diffs = array_diff($diffs_master, $diffs_child);
-
         // Debug: echo '<pre>', print_r($diffs, ture), '</pre>';
 
         jimport('joomla.filesystem.file');
