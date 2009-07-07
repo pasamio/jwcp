@@ -35,6 +35,8 @@ class WCPController extends JController {
         $this->registerTask('applyPatch', 'applyPatch');
         $this->registerTask('revertChild', 'revertChild');
         $this->registerTask('syncChild', 'syncChild');
+        // TODO: Remove this task
+        $this->registerTask('test', 'test');
     }
 
 
@@ -137,6 +139,11 @@ class WCPController extends JController {
     function syncChild() {
         WCPHelper::syncChild();
         $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Synchronization proccess completed'));
+    }
+
+    // TODO: Remove this function
+    function test() {
+        WCPHelper::test();
     }
 
 }
