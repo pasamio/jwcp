@@ -313,9 +313,9 @@ class WCPHelper {
         $internal_timer = WCPHelper::getInternalTime();
 
         // Get exclude files list
-        $exclude_files = WCPHelper::getExcludeFiles();
+        $exclude_files = WCPHelper::getExcludeFiles($path);
 
-        $child_files = JFolderWCP::files($path, $exclude_files);
+        $child_files = JFolderWCP::files($path, array_merge($exclude_files, array('.svn', 'CVS')));
         foreach($child_files as $child_file) {
             // Make file path relative
             $child_file = str_replace($path, '.', $child_file);
@@ -323,7 +323,7 @@ class WCPHelper {
             // Make file path unix format
             $child_file = str_replace(DS, '/', $child_file);
 
-            $m_time = filemtime($path.DS.$child_file);
+            $m_time = filemtime($path . DS . $child_file);
             if($m_time > $internal_timer)
                 $diffs[] = array($child_file, date('r', $m_time));
         }
@@ -503,7 +503,7 @@ class WCPHelper {
 
         jimport('joomla.filesystem.file');
         foreach($diffs as $file)
-            JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file);
+            JFile::copy($master_root . DS . $file, JPATH_ROOT . DS . $file);
 
         // TODO: Treat configuration.php and other special files cases separately
 
@@ -519,8 +519,8 @@ class WCPHelper {
      * @return
      */
     function test() {
-        echo '<pre>', print_r(WCPHelper::getExcludeFiles(), true), '</pre>';
-        echo '<pre>', print_r(JFolderWCP::files(JPATH_ROOT, array_merge(WCPHelper::getExcludeFiles(), array('.svn', 'CVS'))), true), '</pre>';
+        echo '<pre>', print_r(WCPHelper::getExcludeFiles('C:\xampp\htdocs\joomla_dev\Joomla 1.5 Source'), true), '</pre>';
+        //echo '<pre>', print_r(JFolderWCP::files(JPATH_ROOT, array_merge(WCPHelper::getExcludeFiles(), array('.svn', 'CVS'))), true), '</pre>';
     }
 }
 
@@ -552,7 +552,7 @@ class JFolderWCP {
         }
         closedir($handle);
 
-        asort($arr);
+        // asort($arr);
         return $arr;
     }
 }
