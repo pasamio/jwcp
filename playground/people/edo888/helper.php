@@ -379,8 +379,11 @@ class WCPHelper {
         JToolBarHelper::custom('cancel', 'back.png', 'back.png', 'Back', '', false);
         JToolBarHelper::help('screen.wcp.createPatch', true);
 
+        echo '<form action="index.php" method="post" name="adminForm">';
         echo JText::_('Download will start automatically') . ' <a href="' . JURI::root() . 'tmp/' . $patch_file . '"> ' . JText::_('Start download manually') . '</a>';
         echo '<iframe src="' . JURI::root() . 'tmp/' . $patch_file . '" style="display:none;"></iframe>';
+        echo '<input type="hidden" name="task" value="" />';
+        echo '</form>';
 
         // Return to Create Patch interface
         $document->setMetaData('REFRESH', '5; url='.JURI::base().'index.php?option=com_wcp&view=differences', true);
