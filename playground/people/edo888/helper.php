@@ -134,12 +134,7 @@ class WCPHelper {
         $wcp_table->set('params', $params->toString());
 
         $wcp_table->store();
-
         // Debug: echo '<pre>', print_r($wcp_table, true), '</pre>';
-
-        // Get all master tables
-        $master_tables = $master_db->getTableList();
-        // Debug: echo '<pre>', print_r($master_tables, true), '</pre>';
 
         // Create #__wcp_log_queries table
         $child_db->setQuery("create table #__log_queries (
@@ -154,6 +149,11 @@ class WCPHelper {
                 unique key `repeat` (`action`, `table_name`, `value`)
             ) engine=MyISAM default charset=utf8");
         $child_db->query();
+
+        // Get all joomla tables from master
+        $master_db->setQuery("show tables like '#__%'");
+        $master_tables = $master_db->loadResultArray();
+        // Debug: echo '<pre>', print_r($master_tables, true), '</pre>';
 
         // Copy all tables w/ data to the child
         foreach($master_tables as $master_table) {
