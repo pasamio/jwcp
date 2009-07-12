@@ -46,7 +46,7 @@ $document->addStyleDeclaration('.icon-32-download {background-image:url(./templa
                 <?php echo $checked; ?>
             </td>
             <td>
-                <?php echo $row->name; ?>
+                <a href="index.php?option=com_wcp&task=edit&cid[]=<?php echo $row->id; ?>"><?php echo $row->name; ?></a>
             </td>
             <td>
                 <?php echo $row->path; ?>

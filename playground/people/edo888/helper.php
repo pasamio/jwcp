@@ -151,7 +151,7 @@ class WCPHelper {
         $child_db->query();
 
         // Get all joomla tables from master
-        $master_db->setQuery("show tables like '#__%'");
+        $master_db->setQuery("show tables like '".$master_db->_table_prefix."%'");
         $master_tables = $master_db->loadResultArray();
         // Debug: echo '<pre>', print_r($master_tables, true), '</pre>';
 
@@ -297,6 +297,83 @@ class WCPHelper {
         // TODO: add friendly error reporting
 
         return true;
+    }
+
+    /**
+     * Applies made changes to child
+     *
+     * @access public
+     * @return boolean
+     */
+    function applyChild() {
+        list($cid) = JRequest::getVar('cid');
+        $master_db =& JFactory::getDBO();
+        $child_db = new JDatabaseMySQL(array('host' => JRequest::getVar('host'), 'user' => JRequest::getVar('user'), 'password' => JRequest::getVar('password'), 'database' => JRequest::getVar('database'), 'prefix' => JRequest::getVar('prefix')));
+
+        if(!$child_db->connected())
+            return false;
+
+        // Insert new child to #__wcp
+        $wcp_table = new TableWCP($master_db);
+        $wcp_table->load((int) $cid);
+        $wcp_table->set('sid', JRequest::getVar('sid'));
+        $wcp_table->set('name', JRequest::getVar('name'));
+        $wcp_table->set('path', JRequest::getVar('path'));
+
+        $params = new JParameter('');
+        $params->set('exclude_files', json_encode(array_values(array_filter(JRequest::getVar('exclude_files'), 'strlen'))));
+        $params->set('exclude_tables', json_encode(array_values(array_filter(JRequest::getVar('exclude_tables'), 'strlen'))));
+
+        $database = new JObject;
+        $database->set('host', JRequest::getVar('host'));
+        $database->set('user', JRequest::getVar('user'));
+        $database->set('password', JRequest::getVar('password'));
+        $database->set('database', JRequest::getVar('database'));
+        $database->set('prefix', JRequest::getVar('prefix'));
+        $params->set('database', json_encode($database));
+
+        $ftp = new JObject;
+        $ftp->set('enable', JRequest::getVar('ftp_enable'));
+        $ftp->set('host', JRequest::getVar('ftp_host'));
+        $ftp->set('port', JRequest::getVar('ftp_port'));
+        $ftp->set('user', JRequest::getVar('ftp_user'));
+        $ftp->set('pass', JRequest::getVar('ftp_pass'));
+        $ftp->set('root', JRequest::getVar('ftp_root'));
+        $params->set('ftp', json_encode($ftp));
+
+        $wcp_table->set('params', $params->toString());
+
+        // Save changes to master
+        $wcp_table->store();
+
+        // Save changes to child
+        $wcp_table->_db = $child_db;
+        $wcp_table->store();
+        // Debug: echo '<pre>', print_r($wcp_table, true), '</pre>';
+
+        // Re-configure child
+        $config = new JRegistry('config');
+
+        // Get the path of the child configuration file
+        $fname = JPATH_CONFIGURATION.DS.JRequest::getVar('path').DS.'configuration.php';
+
+        $config->loadObject(new JConfig);
+        $config_array = $config->toArray();
+        // Debug: echo '<pre>', print_r($config_array, true), '</pre>';
+
+        // DATABASE SETTINGS
+        $config_array['host'] = JRequest::getVar('host', 'localhost', 'post', 'string');
+        $config_array['user'] = JRequest::getVar('user', '', 'post', 'string');
+        $config_array['password'] = JRequest::getVar('password', '', 'post', 'string');
+        $config_array['db'] = JRequest::getVar('database', '', 'post', 'string');
+        $config_array['dbprefix'] = JRequest::getVar('prefix', 'wcp_', 'post', 'string');
+
+        // Load config array
+        $config->loadArray($config_array);
+
+        // Get the config registry in PHP class format and write it to configuation.php
+        jimport('joomla.filesystem.file');
+        JFile::write($fname, $config->toString('PHP', 'config', array('class' => 'JConfig')));
     }
 
     /**
