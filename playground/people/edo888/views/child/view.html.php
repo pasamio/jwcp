@@ -80,6 +80,8 @@ class WCPViewChild extends JView {
             $exclude_tables[] = '#__migration_backlinks';
             $exclude_tables[] = '#__session';
             $exclude_tables[] = '#__stats_agents';
+            $exclude_tables[] = '#__wcp';
+            $exclude_tables[] = '#__log_queries';
 
             $database = new JObject;
             $database->set('host', $mainframe->getCfg('host'));

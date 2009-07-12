@@ -51,8 +51,17 @@ class WCPController extends JController {
     }
 
     function save() {
-        WCPHelper::createChild();
-        $this->setRedirect('index.php?option=com_wcp', JText::_('Child created successfully'));
+        list($cid) = JRequest::getVar('cid', array(''));
+        if($cid == '') {
+            WCPHelper::createChild();
+            $this->setRedirect('index.php?option=com_wcp', JText::_('Child created successfully'));
+        } else {
+            WCPHelper::applyChild();
+            if(JRequest::getVar('task') == 'save')
+                $this->setRedirect('index.php?option=com_wcp', JText::_('Child info saved successfully'));
+            else
+                $this->setRedirect('index.php?option=com_wcp&task=edit&cid[]='.$cid, JText::_('Child info saved successfully'));
+        }
     }
 
     function cancel() {
