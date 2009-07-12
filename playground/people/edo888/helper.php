@@ -313,7 +313,7 @@ class WCPHelper {
         if(!$child_db->connected())
             return false;
 
-        // Insert new child to #__wcp
+        // Update child settings in jos_wcp and #__wcp
         $wcp_table = new TableWCP($master_db);
         $wcp_table->load((int) $cid);
         $wcp_table->set('sid', JRequest::getVar('sid'));
@@ -360,6 +360,8 @@ class WCPHelper {
         $config->loadObject(new JConfig);
         $config_array = $config->toArray();
         // Debug: echo '<pre>', print_r($config_array, true), '</pre>';
+
+        $config_array['secret'] = JRequest::getVar('sid');
 
         // DATABASE SETTINGS
         $config_array['host'] = JRequest::getVar('host', 'localhost', 'post', 'string');
@@ -632,7 +634,6 @@ class JFolderWCP {
         }
         closedir($handle);
 
-        // asort($arr);
         return $arr;
     }
 }
