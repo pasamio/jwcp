@@ -55,6 +55,30 @@ $document->addStyleDeclaration('.icon-32-refresh {background-image:url(./templat
         $k = 1 - $k;
     }
 
+    for($j = 0, $n = count($this->db_items); $j < $n; $j++, $i++) {
+        $row = new JObject;
+        $row->set('id', $this->db_items[$j]->id);
+        $row->set('action', '<font color="#cc0000">'.$this->db_items[$j]->action . '</font> <b>' . $this->db_items[$j]->table_name . '</b>');
+        $checked = JHTML::_('grid.id', $i, $row->id);
+        ?>
+        <tr class="<?php echo "row$k"; ?>">
+            <td>
+                <?php echo $i + 1; ?>
+            </td>
+            <td>
+                <?php echo $checked; ?>
+            </td>
+            <td>
+                <?php echo $row->action; ?>
+            </td>
+            <td align="center">
+                -
+            </td>
+        </tr>
+        <?php
+        $k = 1 - $k;
+    }
+
     for($j = 0, $n = count($this->table_items); $j < $n; $j++, $i++) {
         $row = new JObject;
         $row->set('id', $this->table_items[$j]->id);
@@ -74,30 +98,6 @@ $document->addStyleDeclaration('.icon-32-refresh {background-image:url(./templat
             </td>
             <td align="center">
                 <?php echo $row->mdate; ?>
-            </td>
-        </tr>
-        <?php
-        $k = 1 - $k;
-    }
-
-    for($j = 0, $n = count($this->db_items); $j < $n; $j++, $i++) {
-        $row = new JObject;
-        $row->set('id', $this->db_items[$j]->id);
-        $row->set('action', '<font color="#cc0000">'.$this->db_items[$j]->action . '</font> <b>' . $this->db_items[$j]->table_name . '</b>');
-        $checked = JHTML::_('grid.id', $i, $row->id);
-        ?>
-        <tr class="<?php echo "row$k"; ?>">
-            <td>
-                <?php echo $i + 1; ?>
-            </td>
-            <td>
-                <?php echo $checked; ?>
-            </td>
-            <td>
-                <?php echo $row->action; ?>
-            </td>
-            <td align="center">
-                -
             </td>
         </tr>
         <?php
