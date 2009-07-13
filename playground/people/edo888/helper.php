@@ -146,7 +146,7 @@ class WCPHelper {
                 `date` timestamp not null default current_timestamp,
                 primary key (`id`),
                 unique key `id` (`id`),
-                unique key `repeat` (`action`, `table_name`, `value`)
+                unique key `repeat` (`table_name`, `value`)
             ) engine=MyISAM default charset=utf8");
         $child_db->query();
 
@@ -611,6 +611,9 @@ class WCPHelper {
         foreach($rows as $row) {
             $db->setQuery('select action, table_name, table_key, value from #__log_queries where id = ' . $row);
             $change = $db->loadObject();
+            if(empty($change->action))
+                continue;
+
             switch($change->action) {
                 case 'insert':
                     $db->setQuery("delete from $change->table_name where $change->table_key = '$change->value'");
@@ -625,8 +628,17 @@ class WCPHelper {
                     $master_db->setQuery("select * from " . str_replace($db->_table_prefix, '#__', $change->table_name) . " where $change->table_key = '$change->value'");
                     $original = $master_db->loadAssoc();
 
-                    if(count($original) == 0)
+                    if(count($original) == 0) {
+                        // The original row doesn't exist in master table, deleting row from child_db
+                        $db->setQuery("delete from $change->table_name where $change->table_key = '$change->value'");
+                        $db->query();
+
+                        // Remove from query log - remember: id is changed after delete
+                        $db->setQuery("delete from #__log_queries where table_name = '$change->table_name' and table_key = '$change->table_key' and value = '$change->value'");
+                        $db->query();
+
                         break;
+                    }
 
                     foreach($original as $key => $val)
                         $original[$key] = $master_db->isQuoted($key) ? $master_db->Quote($val) : (int) $val; // TODO: make sure NULL values will not cause issues
