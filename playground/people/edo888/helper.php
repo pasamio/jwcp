@@ -427,7 +427,52 @@ class WCPHelper {
         $db->setQuery("select id, action, table_name, table_key, value, unix_timestamp(date) as mdate from #__log_queries where date > '$internal_timer' order by date asc");
         $diffs = $db->loadObjectList();
 
-        // TODO: Get added/deleted tables
+        return $diffs;
+    }
+
+    /**
+     * Get database differences between master and child
+     *
+     * @access public
+     * @return array
+     */
+    function getDatabaseDifferences() {
+        $diffs = array();
+
+        // TODO: Get connection to master db
+        $master_db = new JDatabaseMySQL(array('host' => 'localhost', 'user' => 'root', 'password' => '', 'database' => 'jdev15', 'prefix' => 'jos_'));
+        $master_db->setQuery("show tables like '" . $master_db->_table_prefix . "%'");
+        $master_tables = $master_db->loadResultArray();
+        foreach($master_tables as $i => $table)
+            $master_tables[$i] = str_replace($master_db->_table_prefix, '#__', $table);
+
+        $child_db =& JFactory::getDBO();
+        $child_db->setQuery("show tables like '" . $child_db->_table_prefix . "%'");
+        $child_tables = $child_db->loadResultArray();
+        foreach($child_tables as $i => $table)
+            $child_tables[$i] = str_replace($child_db->_table_prefix, '#__', $table);
+
+        // Get all added/deleted tables
+        $exclude_tables = array(); // TODO: Get tables exclude list
+        $tables_added = array_diff($child_tables, $master_tables, $exclude_tables);
+        // Debug: echo '<pre>', print_r($tables_added, true), '</pre>';
+        $tables_deleted = array_diff($master_tables, $child_tables, $exclude_tables);
+        // Debug: echo '<pre>', print_r($tables_deleted, true), '</pre>';
+
+        $diff = new JObject;
+        foreach($tables_added as $table) {
+            $diff->set('id', '');
+            $diff->set('action', 'add table');
+            $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
+            $diffs[] = $diff;
+        }
+
+        foreach($tables_deleted as $table) {
+            $diff->set('id', '');
+            $diff->set('action', 'delete table');
+            $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
+            $diffs[] = $diff;
+        }
 
         return $diffs;
     }
