@@ -579,24 +579,70 @@ class WCPHelper {
      */
     function revertChild() {
         global $mainframe;
-
-        // TODO: Write tables revert part
-
+        $changes = JRequest::getVar('cid');
         $db =& JFactory::getDBO();
-        $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
-        $path = $db->loadResult();
 
-        $files = JRequest::getVar('cid');
-        $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
+        $files = $tables = $rows = array();
+        foreach($changes as $i => $change)
+            if(file_exists(JPATH_ROOT.DS.$change))
+                $files[] = $change;
+            elseif(intval($change) == $change)
+                $rows[] = $change;
+            elseif(false)
+                $tables[] = $change;
 
         // Debug: echo '<pre>', print_r($files, true), '</pre>';
+        // Debug: echo '<pre>', print_r($tables, true), '</pre>';
+        // Debug: echo '<pre>', print_r($rows, true), '</pre>';
 
+        // Revert files
         jimport('joomla.filesystem.file');
+        $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
+        $path = $db->loadResult();
+        $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
         foreach($files as $i => $file)
             JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file);
 
-        return true;
+        // TODO: Write database revert part
 
+        // Revert rows
+        // TODO: Get connection to master db
+        $master_db = new JDatabaseMySQL(array('host' => 'localhost', 'user' => 'root', 'password' => '', 'database' => 'jdev15', 'prefix' => 'jos_'));
+        foreach($rows as $row) {
+            $db->setQuery('select action, table_name, table_key, value from #__log_queries where id = ' . $row);
+            $change = $db->loadObject();
+            switch($change->action) {
+                case 'insert':
+                    $db->setQuery("delete from $change->table_name where $change->table_key = '$change->value'");
+                    $db->query();
+
+                    // Remove from query log - remember: id is changed after delete
+                    $db->setQuery("delete from #__log_queries where table_name = '$change->table_name' and table_key = '$change->table_key' and value = '$change->value'");
+                    $db->query();
+                    break;
+                case 'update':
+                case 'delete':
+                    $master_db->setQuery("select * from " . str_replace($db->_table_prefix, '#__', $change->table_name) . " where $change->table_key = '$change->value'");
+                    $original = $master_db->loadAssoc();
+
+                    if(count($original) == 0)
+                        break;
+
+                    foreach($original as $key => $val)
+                        $original[$key] = $master_db->isQuoted($key) ? $master_db->Quote($val) : (int) $val; // TODO: make sure NULL values will not cause issues
+
+                    $original = implode(',', $original);
+                    $db->setQuery("replace into $change->table_name values ($original)");
+                    $db->query();
+
+                    // Remove from query log - remember: id is changed after store
+                    $db->setQuery("delete from #__log_queries where table_name = '$change->table_name' and table_key = '$change->table_key' and value = '$change->value'");
+                    $db->query();
+                    break;
+            }
+        }
+
+        return true;
     }
 
     /**
