@@ -35,12 +35,12 @@ class WCPViewDifferences extends JView {
 
 	    // Get data from the cache
 	    $items = $cache->call(array('WCPHelper', 'getDifferences'));
-	    $table_items = $cache->call(array('WCPHelper', 'getTableDifferences'));
 	    $db_items = $cache->call(array('WCPHelper', 'getDatabaseDifferences'));
+	    $table_items = $cache->call(array('WCPHelper', 'getTableDifferences'));
 
         $this->assignRef('items', $items);
-        $this->assignRef('table_items', $table_items);
         $this->assignRef('db_items', $db_items);
+        $this->assignRef('table_items', $table_items);
         parent::display($tpl);
 	}
 
