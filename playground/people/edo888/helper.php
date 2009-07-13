@@ -485,18 +485,63 @@ class WCPHelper {
      * @return boolean
      */
     function createPatch() {
-        $files = JRequest::getVar('cid');
-        foreach($files as $i => $file)
-            $files[$i] = JPATH_ROOT.DS.$file;
+        $changes = JRequest::getVar('cid');
 
-        // TODO: Write tables patch part
-
-        jimport('joomla.filesystem.archive');
-        $patch_file = uniqid('patch_').'.tar.gz';
-        JArchive::create(JPATH_ROOT.DS.'tmp'.DS.$patch_file, $files, 'gz', '', JPATH_ROOT);
+        $files = $tables = $rows = array();
+        foreach($changes as $i => $change)
+            if(file_exists(JPATH_ROOT.DS.$change))
+                $files[] = JPATH_ROOT.DS.$change;
+            elseif(intval($change) == $change)
+                $rows[] = $change;
+            elseif(false)
+                $tables[] = $change;
 
         // Debug: echo '<pre>', print_r($files, true), '</pre>';
+        // Debug: echo '<pre>', print_r($tables, true), '</pre>';
+        // Debug: echo '<pre>', print_r($rows, true), '</pre>';
 
+        // TODO: Write database patch
+
+        // Tables patch
+        $sql = array();
+        $db =& JFactory::getDBO();
+        $db->setQuery('select action, table_name, table_key, value from #__log_queries where id in (' . implode(',', $rows) . ')');
+        $rows = $db->loadObjectList();
+        foreach($rows as $row) {
+            $db->setQuery("select * from $row->table_name where $row->table_key = '$row->value'");
+            $data = $db->loadAssoc();
+            $row->table_name = str_replace($db->_table_prefix, '#__', $row->table_name);
+            switch($row->action) {
+                case 'insert':
+                case 'update':
+                    foreach($data as $key => $val)
+                        $data[$key] = $db->isQuoted($key) ? $db->Quote($val) : (int) $val; // TODO: make sure NULL values will not cause issues
+
+                    $data = implode(',', $data);
+                    $sql[] = "replace into $row->table_name values ($data)";
+                    break;
+                case 'delete':
+                    $sql[] = "delete from $row->table_name where $row->table_key = '$row->value'";
+                    break;
+            }
+        }
+
+        $sql = implode(";\n", $sql) . ';';
+        $patch_id = uniqid('patch_');
+        $patch_file_sql = JPATH_ROOT.DS.$patch_id.'.sql';
+        jimport('joomla.filesystem.file');
+        JFile::write($patch_file_sql, $sql);
+        $files[] = $patch_file_sql;
+
+        // Creating the patch package
+        jimport('joomla.filesystem.archive');
+        $patch_file = $patch_id.'.tar.gz';
+        JArchive::create(JPATH_ROOT.DS.'tmp'.DS.$patch_file, $files, 'gz', '', JPATH_ROOT);
+
+        // Delete sql file
+        JFile::delete($patch_file_sql);
+
+        // Loading download form
         $document =& JFactory::getDocument();
         $document->addStyleDeclaration('.icon-48-download {background-image:url(./templates/khepri/images/header/icon-48-install.png);}');
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Download Patch') . ' ]</small></small>', 'download.png');
