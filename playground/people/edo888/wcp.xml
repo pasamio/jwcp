@@ -68,6 +68,7 @@
             <filename>views/differences/tmpl/index.html</filename>
             <filename>views/differences/tmpl/default.php</filename>
             <filename>models/index.html</filename>
+            <filename>models/child.php</filename>
             <filename>models/childs.php</filename>
             <filename>help/index.html</filename>
             <filename>help/en-GB/index.html</filename>
