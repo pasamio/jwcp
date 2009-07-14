@@ -39,7 +39,6 @@ class WCPHelper {
     function getInternalTime() {
         // TODO: Write get internal time function
         return filemtime(JPATH_ROOT.DS.'configuration.php');
-        return strtotime('2009-06-04 03:28:10');
     }
 
     /**
@@ -59,6 +58,23 @@ class WCPHelper {
         }
 
         return '';
+    }
+
+    /**
+     * Returns connection link to master database
+     *
+     * @access public
+     * @return JDatabaseMySQL
+     */
+    function &getMasterDBO() {
+        global $mainframe;
+        $db =& JFactory::getDBO();
+        $db->setQuery("select params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
+        $params = $db->loadResult();
+        $params = new JParameter($params);
+        $master_db = json_decode($params->get('master_db'));
+
+        return new JDatabaseMySQL(array('host' => $master_db->host, 'user' => $master_db->user, 'password' => $master_db->password, 'database' => $master_db->database, 'prefix' => $master_db->prefix));
     }
 
     /**
@@ -87,6 +103,23 @@ class WCPHelper {
     }
 
     /**
+     * Get the exclude tables list of the child
+     *
+     * @access public
+     * @return array
+     */
+    function getExcludeTables() {
+        global $mainframe;
+        $db =& JFactory::getDBO();
+
+        $db->setQuery("select params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
+        $params = $db->loadResult();
+        $params = new JParameter($params);
+
+        return json_decode($params->get('exclude_tables'));
+    }
+
+    /**
      * Creates a child from master
      *
      * @access public
@@ -94,6 +127,10 @@ class WCPHelper {
      */
     function createChild() {
         // TODO: write createChild function
+
+        // Try to set the script execution time to unlimited, if php is in safe mode there is no workaround
+        set_time_limit(0);
+
         global $mainframe;
 
         $master_db =& JFactory::getDBO();
@@ -121,6 +158,14 @@ class WCPHelper {
         $database->set('database', JRequest::getVar('database'));
         $database->set('prefix', JRequest::getVar('prefix'));
         $params->set('database', json_encode($database));
+
+        $master_database = new JObject;
+        $master_database->set('host', JRequest::getVar('master_host'));
+        $master_database->set('user', JRequest::getVar('master_user'));
+        $master_database->set('password', JRequest::getVar('master_password'));
+        $master_database->set('database', JRequest::getVar('master_database'));
+        $master_database->set('prefix', JRequest::getVar('master_prefix'));
+        $params->set('master_db', json_encode($master_database));
 
         $ftp = new JObject;
         $ftp->set('enable', JRequest::getVar('ftp_enable'));
@@ -332,6 +377,14 @@ class WCPHelper {
         $database->set('prefix', JRequest::getVar('prefix'));
         $params->set('database', json_encode($database));
 
+        $master_database = new JObject;
+        $master_database->set('host', JRequest::getVar('master_host'));
+        $master_database->set('user', JRequest::getVar('master_user'));
+        $master_database->set('password', JRequest::getVar('master_password'));
+        $master_database->set('database', JRequest::getVar('master_database'));
+        $master_database->set('prefix', JRequest::getVar('master_prefix'));
+        $params->set('master_db', json_encode($master_database));
+
         $ftp = new JObject;
         $ftp->set('enable', JRequest::getVar('ftp_enable'));
         $ftp->set('host', JRequest::getVar('ftp_host'));
@@ -437,10 +490,11 @@ class WCPHelper {
      * @return array
      */
     function getDatabaseDifferences() {
+        global $mainframe;
         $diffs = array();
 
-        // TODO: Get connection to master db
-        $master_db = new JDatabaseMySQL(array('host' => 'localhost', 'user' => 'root', 'password' => '', 'database' => 'jdev15', 'prefix' => 'jos_'));
+        // Get connection to master db
+        $master_db =& WCPHelper::getMasterDBO();
         $master_db->setQuery("show tables like '" . $master_db->_table_prefix . "%'");
         $master_tables = $master_db->loadResultArray();
         foreach($master_tables as $i => $table)
@@ -452,15 +506,17 @@ class WCPHelper {
         foreach($child_tables as $i => $table)
             $child_tables[$i] = str_replace($child_db->_table_prefix, '#__', $table);
 
+        $exclude_tables = WCPHelper::getExcludeTables();
+
         // Get all added/deleted tables
-        $exclude_tables = array(); // TODO: Get tables exclude list
         $tables_added = array_diff($child_tables, $master_tables, $exclude_tables);
         // Debug: echo '<pre>', print_r($tables_added, true), '</pre>';
+
         $tables_deleted = array_diff($master_tables, $child_tables, $exclude_tables);
         // Debug: echo '<pre>', print_r($tables_deleted, true), '</pre>';
 
-        $diff = new JObject;
         foreach($tables_added as $table) {
+            $diff = new JObject;
             $diff->set('id', '');
             $diff->set('action', 'add table');
             $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
@@ -468,6 +524,7 @@ class WCPHelper {
         }
 
         foreach($tables_deleted as $table) {
+            $diff = new JObject;
             $diff->set('id', '');
             $diff->set('action', 'delete table');
             $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
@@ -664,7 +721,7 @@ class WCPHelper {
 
         // Revert rows
         // TODO: Get connection to master db
-        $master_db = new JDatabaseMySQL(array('host' => 'localhost', 'user' => 'root', 'password' => '', 'database' => 'jdev15', 'prefix' => 'jos_'));
+        $master_db = WCPHelper::getMasterDBO();
         foreach($rows as $row) {
             $db->setQuery('select action, table_name, table_key, value from #__log_queries where id = ' . $row);
             $change = $db->loadObject();
@@ -766,6 +823,10 @@ class WCPHelper {
     }
 }
 
+/**
+ * JFolder extension class
+ *
+ */
 class JFolderWCP {
     /**
      * Utility function to read the files in a folder.
