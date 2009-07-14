@@ -126,7 +126,7 @@ class WCPHelper {
      * @return boolean True on success, False on failure
      */
     function createChild() {
-        // TODO: write createChild function
+        // TODO: Add friendly error reporting
 
         // Try to set the script execution time to unlimited, if php is in safe mode there is no workaround
         set_time_limit(0);
@@ -251,7 +251,7 @@ class WCPHelper {
             JFile::copy($master_file, str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_file), '', false);
 
 
-        // TODO: Configure child
+        // Configure the child
         $config = new JRegistry('config');
         $config_array = array();
 
@@ -338,8 +338,6 @@ class WCPHelper {
         // Get the config registry in PHP class format and write it to configuation.php
         jimport('joomla.filesystem.file');
         JFile::write($fname, $config->toString('PHP', 'config', array('class' => 'JConfig')));
-
-        // TODO: add friendly error reporting
 
         return true;
     }
@@ -624,7 +622,7 @@ class WCPHelper {
      * @return boolean
      */
     function applyPatch() {
-        // TODO: Write error handling
+        // TODO: Add friendly error reporting
 
         // Get the uploaded file information
         $userfile = JRequest::getVar('patch_file', null, 'files', 'array');
@@ -680,8 +678,6 @@ class WCPHelper {
         JFile::delete($patch_src);
         JFolder::delete($patch_dest);
 
-        // TODO: Run queries
-
         return true;
     }
 
@@ -720,7 +716,7 @@ class WCPHelper {
         // TODO: Write database revert part
 
         // Revert rows
-        // TODO: Get connection to master db
+        // Get connection to master db
         $master_db = WCPHelper::getMasterDBO();
         foreach($rows as $row) {
             $db->setQuery('select action, table_name, table_key, value from #__log_queries where id = ' . $row);
