@@ -598,6 +598,18 @@ class WCPHelper {
         jimport('joomla.filesystem.archive');
         JArchive::extract($patch_src, $patch_dest);
 
+        // Run queries from sql file
+        $db =& JFactory::getDBO();
+        $sql_file = $patch_dest.DS.str_replace('.tar.gz', '.sql', $userfile['name']);
+        $sql = file($sql_file);
+        foreach($sql as $query) {
+            $db->setQuery($query);
+            $db->query();
+        }
+
+        // Remove sql file
+        JFile::delete($sql_file);
+
         // Replace files
         $files = JFolder::files($patch_dest, '.', true, true);
         // Debug: echo '<pre>', print_r($files, true), '</pre>';
