@@ -79,7 +79,7 @@ function addExcludeTable() {
                 <tr>
                     <td width="200" class="key">
                         <label for="name">
-                            <?php echo JText::_('Name'); ?>:
+                            <?php echo JText::_('Name'); ?>
                         </label>
                     </td>
                     <td>
@@ -89,7 +89,7 @@ function addExcludeTable() {
                 <tr>
                     <td width="200" class="key">
                         <label for="path">
-                            <?php echo JText::_('Path'); ?>:
+                            <?php echo JText::_('Path'); ?>
                         </label>
                     </td>
                     <td>
@@ -98,7 +98,7 @@ function addExcludeTable() {
                 </tr>
                 <tr>
                     <td width="200" class="key">
-                        <?php echo JText::_('Site ID'); ?>:
+                        <?php echo JText::_('Site ID'); ?>
                     </td>
                     <td>
                         <b><?php echo $this->secret; ?></b>
@@ -108,7 +108,7 @@ function addExcludeTable() {
             </fieldset>
 
             <fieldset class="adminform">
-                <legend><?php echo JText::_('Database Settings'); ?></legend>
+                <legend><?php echo JText::_('Child Database Settings'); ?></legend>
 
                 <table class="admintable">
                 <tr>
@@ -159,6 +159,63 @@ function addExcludeTable() {
                     </td>
                     <td>
                         <input class="text_area" type="text" name="prefix" id="prefix" size="30" value="<?php echo $this->database->prefix; ?>" />
+                    </td>
+                </tr>
+                </table>
+            </fieldset>
+
+            <fieldset class="adminform">
+                <legend><?php echo JText::_('Master Database Settings'); ?></legend>
+
+                <table class="admintable">
+                <tr>
+                    <td width="200" class="key">
+                        <label for="master_host">
+                            <?php echo JText::_('Host'); ?>
+                        </label>
+                    </td>
+                    <td>
+                        <input class="text_area" type="text" name="master_host" id="master_host" size="30" value="<?php echo $this->master_db->host; ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <td width="200" class="key">
+                        <label for="master_user">
+                            <?php echo JText::_('Username'); ?>
+                        </label>
+                    </td>
+                    <td>
+                        <input class="text_area" type="text" name="master_user" id="master_user" size="30" value="<?php echo $this->master_db->user; ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <td width="200" class="key">
+                        <label for="master_password">
+                            <?php echo JText::_('Password'); ?>
+                        </label>
+                    </td>
+                    <td>
+                        <input class="text_area" type="password" name="master_password" id="master_password" size="30" value="<?php echo $this->master_db->password; ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <td width="200" class="key">
+                        <label for="master_database">
+                            <?php echo JText::_('Database'); ?>
+                        </label>
+                    </td>
+                    <td>
+                        <input class="text_area" type="text" name="master_database" id="master_database" size="30" value="<?php echo $this->master_db->database; ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <td width="200" class="key">
+                        <label for="master_prefix">
+                            <?php echo JText::_('Prefix'); ?>
+                        </label>
+                    </td>
+                    <td>
+                        <input class="text_area" type="text" name="master_prefix" id="master_prefix" size="30" value="<?php echo $this->master_db->prefix; ?>" />
                     </td>
                 </tr>
                 </table>
@@ -237,7 +294,7 @@ function addExcludeTable() {
                 <tr>
                     <td width="200" class="key" valign="top">
                         <label for="exclude_files_1">
-                            <?php echo JText::_('Path'); ?>:
+                            <?php echo JText::_('Path'); ?>
                         </label>
                     </td>
                     <td>
@@ -259,7 +316,7 @@ function addExcludeTable() {
                 <tr>
                     <td width="200" class="key" valign="top">
                         <label for="exclude_tables_1">
-                            <?php echo JText::_('Table Name'); ?>:
+                            <?php echo JText::_('Table Name'); ?>
                         </label>
                     </td>
                     <td>

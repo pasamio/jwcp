@@ -90,6 +90,13 @@ class WCPViewChild extends JView {
             $database->set('database', $mainframe->getCfg('db'));
             $database->set('prefix', 'wcp_');
 
+            $master_db = new JObject;
+            $master_db->set('host', $mainframe->getCfg('host'));
+            $master_db->set('user', $mainframe->getCfg('user'));
+            $master_db->set('password', $mainframe->getCfg('password'));
+            $master_db->set('database', $mainframe->getCfg('db'));
+            $master_db->set('prefix', 'jos_');
+
             $ftp = new JObject;
             $ftp->set('enable', $mainframe->getCfg('ftp_enable'));
             $ftp->set('host', $mainframe->getCfg('ftp_host'));
@@ -102,12 +109,14 @@ class WCPViewChild extends JView {
             $exclude_files = json_decode($params->get('exclude_files'));
             $exclude_tables = json_decode($params->get('exclude_tables'));
             $database = json_decode($params->get('database'));
+            $master_db = json_decode($params->get('master_db'));
             $ftp = json_decode($params->get('ftp'));
         }
 
         $this->assignRef('exclude_files', $exclude_files);
         $this->assignRef('exclude_tables', $exclude_tables);
         $this->assignRef('database', $database);
+        $this->assignRef('master_db', $master_db);
         $this->assignRef('ftp', $ftp);
         $this->assignRef('secret', $secret);
         $this->assignRef('item', $child);
