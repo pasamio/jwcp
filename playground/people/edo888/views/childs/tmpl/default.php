@@ -49,7 +49,7 @@ $document->addStyleDeclaration('.icon-32-download {background-image:url(./templa
                 <a href="index.php?option=com_wcp&task=edit&cid[]=<?php echo $row->id; ?>"><?php echo $row->name; ?></a>
             </td>
             <td>
-                <?php echo $row->path; ?>
+                <a href="<?php echo JURI::root().$row->path; ?>"><?php echo $row->path; ?></a>
             </td>
             <td>
                 <?php echo $row->id; ?>
