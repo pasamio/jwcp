@@ -64,7 +64,7 @@ class WCPHelper {
      * Returns connection link to master database
      *
      * @access public
-     * @return JDatabaseMySQL
+     * @return object JDatabaseMySQL
      */
     function &getMasterDBO() {
         global $mainframe;
@@ -233,7 +233,14 @@ class WCPHelper {
                     $child_db->query();
                 }
 
-                // TODO: Alter child table for changing auto increment value
+                // Increase child table auto_increment values
+                $child_db->setQuery("select auto_increment from information_schema.tables where table_schema = database() and table_name = '$child_table'");
+                $table_auto_increment = $child_db->loadResult();
+                if($table_auto_increment != '') {
+                    $table_auto_increment *= 10; // TODO: Select different multiplier depending on $table_auto_increment value
+                    $child_db->setQuery("alter table $child_table auto_increment = $table_auto_increment");
+                    $child_db->query();
+                }
             }
         }
 
@@ -490,6 +497,8 @@ class WCPHelper {
     function getDatabaseDifferences() {
         global $mainframe;
         $diffs = array();
+
+        // TODO: It's possible to get created tables from information_schema.tables
 
         // Get connection to master db
         $master_db =& WCPHelper::getMasterDBO();

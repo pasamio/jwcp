@@ -95,7 +95,7 @@ class WCPViewChild extends JView {
             $master_db->set('user', $mainframe->getCfg('user'));
             $master_db->set('password', $mainframe->getCfg('password'));
             $master_db->set('database', $mainframe->getCfg('db'));
-            $master_db->set('prefix', $mainframe->getCfg('prefix'));
+            $master_db->set('prefix', $mainframe->getCfg('dbprefix'));
 
             $ftp = new JObject;
             $ftp->set('enable', $mainframe->getCfg('ftp_enable'));
