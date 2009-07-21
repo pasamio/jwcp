@@ -218,7 +218,7 @@ class WCPHelper {
 
                 // Create triggers for child table
                 $child_table = str_replace('#__', $child_db->_table_prefix, $child_table);
-                $key = WCPHelper::getPrimaryKeyField($child_db, $child_table);
+                $key = self::getPrimaryKeyField($child_db, $child_table);
                 if($key != '') {
                     $child_db->setQuery("create trigger on_insert_$child_table after insert on $child_table for each row " .
                         "replace into #__log_queries (action, table_name, table_key, value) values('insert', '$child_table', '$key', new.$key)");
@@ -489,10 +489,10 @@ class WCPHelper {
         $diffs = array();
 
         // Get internal timer
-        $internal_timer = WCPHelper::getInternalTime();
+        $internal_timer = self::getInternalTime();
 
         // Get exclude files list
-        $exclude_files = WCPHelper::getExcludeFiles($path);
+        $exclude_files = self::getExcludeFiles($path);
 
         $child_files = JFolderWCP::files($path, array_merge($exclude_files, array('.svn', 'CVS')));
         foreach($child_files as $child_file) {
@@ -521,7 +521,7 @@ class WCPHelper {
         $diffs = array();
 
         // Get internal timer
-        $internal_timer = date('Y-m-d H:i:s', WCPHelper::getInternalTime());
+        $internal_timer = date('Y-m-d H:i:s', self::getInternalTime());
 
         $db =& JFactory::getDBO();
         $db->setQuery("select id, action, table_name, table_key, value, unix_timestamp(date) as mdate from #__log_queries where date > '$internal_timer' order by date asc");
@@ -540,10 +540,8 @@ class WCPHelper {
         global $mainframe;
         $diffs = array();
 
-        // TODO: It's possible to get created tables from information_schema.tables
-
         // Get connection to master db
-        $master_db =& WCPHelper::getMasterDBO();
+        $master_db =& self::getMasterDBO();
         $master_db->setQuery("show tables like '" . $master_db->_table_prefix . "%'");
         $master_tables = $master_db->loadResultArray();
         foreach($master_tables as $i => $table)
@@ -555,9 +553,14 @@ class WCPHelper {
         foreach($child_tables as $i => $table)
             $child_tables[$i] = str_replace($child_db->_table_prefix, '#__', $table);
 
-        $exclude_tables = WCPHelper::getExcludeTables();
+        $exclude_tables = self::getExcludeTables();
 
         // Get all added/deleted tables
+        /* It's possible to get created tables from information_schema.tables
+        $internal_timer = date('Y-m-d H:i:s', self::getInternalTime());
+        $child_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name like '$child_db->_table_prefix%' and create_time > '$internal_timer'");
+        $tables_added = array_diff($child_db->loadResultArray(), $exclude_tables);
+        */
         $tables_added = array_diff($child_tables, $master_tables, $exclude_tables);
         // Debug: echo '<pre>', print_r($tables_added, true), '</pre>';
 
@@ -566,7 +569,7 @@ class WCPHelper {
 
         foreach($tables_added as $table) {
             $diff = new JObject;
-            $diff->set('id', '');
+            $diff->set('id', 'add ' . $table);
             $diff->set('action', 'add table');
             $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
             $diffs[] = $diff;
@@ -574,7 +577,7 @@ class WCPHelper {
 
         foreach($tables_deleted as $table) {
             $diff = new JObject;
-            $diff->set('id', '');
+            $diff->set('id', 'delete ' . $table);
             $diff->set('action', 'delete table');
             $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
             $diffs[] = $diff;
@@ -597,40 +600,65 @@ class WCPHelper {
         foreach($changes as $i => $change)
             if(file_exists(JPATH_ROOT.DS.$change))
                 $files[] = JPATH_ROOT.DS.$change;
-            elseif(intval($change) == $change)
+            elseif(is_numeric($change))
                 $rows[] = $change;
-            elseif(false)
+            elseif(true)
                 $tables[] = $change;
 
         // Debug: echo '<pre>', print_r($files, true), '</pre>';
         // Debug: echo '<pre>', print_r($tables, true), '</pre>';
         // Debug: echo '<pre>', print_r($rows, true), '</pre>';
 
-        // TODO: Write database patch
-
         // Tables patch
         $sql = array();
         $db =& JFactory::getDBO();
         $db->setQuery('select action, table_name, table_key, value from #__log_queries where id in (' . implode(',', $rows) . ')');
         $rows = $db->loadObjectList();
-        foreach($rows as $row) {
-            $db->setQuery("select * from $row->table_name where $row->table_key = '$row->value'");
-            $data = $db->loadAssoc();
-            $row->table_name = str_replace($db->_table_prefix, '#__', $row->table_name);
-            switch($row->action) {
-                case 'insert':
-                case 'update':
-                    foreach($data as $key => $val)
-                        $data[$key] = $db->isQuoted($key) ? $db->Quote($val) : (int) $val; // TODO: make sure NULL values will not cause issues
+        if(is_array($rows)) {
+            foreach($rows as $row) {
+                $db->setQuery("select * from $row->table_name where $row->table_key = '$row->value'");
+                $data = $db->loadAssoc();
+                $row->table_name = str_replace($db->_table_prefix, '#__', $row->table_name);
+                switch($row->action) {
+                    case 'insert':
+                    case 'update':
+                        foreach($data as $key => $val)
+                            $data[$key] = $db->isQuoted($key) ? $db->Quote($val) : (int) $val; // TODO: make sure NULL values will not cause issues
 
-                    $data = implode(',', $data);
-                    $sql[] = "replace into $row->table_name values ($data)";
+                        $data = implode(',', $data);
+                        $sql[] = "replace into $row->table_name values ($data)";
+                        break;
+                    case 'delete':
+                        $sql[] = "delete from $row->table_name where $row->table_key = '$row->value'";
+                        break;
+                }
+            }
+        }
+
+        // Database patch
+        foreach($tables as $table) {
+            list($action, $table) = sscanf($table, '%s %s');
+            switch($action) {
+                case 'add':
+                    list($table_ddl) = array_values($db->getTableCreate($table));
+                    $sql[] = str_replace("\n", '', $table_ddl);
+                    $db->setQuery('select * from ' . $table);
+                    $rows = $db->loadAssocList();
+                    foreach($rows as $row) {
+                        foreach($row as $key => $val)
+                            $row[$key] = $db->isQuoted($key) ? $db->Quote($val) : (int) $val;
+
+                        $row = implode(',', $row);
+                        $sql[] = "insert into $table values ($row)";
+                    }
                     break;
                 case 'delete':
-                    $sql[] = "delete from $row->table_name where $row->table_key = '$row->value'";
+                    $sql[] = 'drop table if exists ' . $table;
                     break;
             }
         }
+
+        // Debug: echo '<pre>', print_r($sql, true), '</pre>';
 
         $sql = implode(";\n", $sql) . ';';
         $patch_id = uniqid('patch_');
@@ -742,14 +770,15 @@ class WCPHelper {
         global $mainframe;
         $changes = JRequest::getVar('cid');
         $db =& JFactory::getDBO();
+        $master_db =& self::getMasterDBO();
 
         $files = $tables = $rows = array();
         foreach($changes as $i => $change)
             if(file_exists(JPATH_ROOT.DS.$change))
                 $files[] = $change;
-            elseif(intval($change) == $change)
+            elseif(is_numeric($change))
                 $rows[] = $change;
-            elseif(false)
+            elseif(true)
                 $tables[] = $change;
 
         // Debug: echo '<pre>', print_r($files, true), '</pre>';
@@ -764,11 +793,28 @@ class WCPHelper {
         foreach($files as $i => $file)
             JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file);
 
-        // TODO: Write database revert part
+        // Revert database
+        foreach($tables as $table) {
+            list($action, $table) = sscanf($table, '%s %s');
+            switch($action) {
+                case 'add':
+                    $db->setQuery('drop table if exists ' . $table);
+                    $db->query();
+                    break;
+                case 'delete':
+                    list($table_ddl) = array_values($master_db->getTableCreate($table));
+                    $table_ddl = preg_replace('/'.str_replace('#__', $master_db->_table_prefix, $table).'/', $table, $table_ddl, 1);
+                    $db->setQuery($table_ddl);
+                    $db->query();
+                    $master_db->setQuery('select * from ' . $table);
+                    $rows = $master_db->loadObjectList();
+                    foreach($rows as $row)
+                        $db->insertObject($table, $row);
+                    break;
+            }
+        }
 
         // Revert rows
-        // Get connection to master db
-        $master_db = WCPHelper::getMasterDBO();
         foreach($rows as $row) {
             $db->setQuery('select action, table_name, table_key, value from #__log_queries where id = ' . $row);
             $change = $db->loadObject();
@@ -835,8 +881,8 @@ class WCPHelper {
         // then update to child the newer ones, but keep those which are already modified
         // on child
         $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
-        $diffs_master = WCPHelper::getDifferences($master_root);
-        $diffs_child = WCPHelper::getDifferences();
+        $diffs_master = self::getDifferences($master_root);
+        $diffs_child = self::getDifferences();
 
         foreach($diffs_master as $i => $diff_master)
             $diffs_master[$i] = $diff_master[0];
@@ -865,8 +911,8 @@ class WCPHelper {
      * @return
      */
     function test() {
-        echo '<pre>', print_r(WCPHelper::getExcludeFiles('C:\xampp\htdocs\joomla_dev\Joomla 1.5 Source'), true), '</pre>';
-        //echo '<pre>', print_r(JFolderWCP::files(JPATH_ROOT, array_merge(WCPHelper::getExcludeFiles(), array('.svn', 'CVS'))), true), '</pre>';
+        echo '<pre>', print_r(self::getExcludeFiles('C:\xampp\htdocs\joomla_dev\Joomla 1.5 Source'), true), '</pre>';
+        //echo '<pre>', print_r(JFolderWCP::files(JPATH_ROOT, array_merge(self::getExcludeFiles(), array('.svn', 'CVS'))), true), '</pre>';
     }
 }
 
