@@ -761,6 +761,16 @@ class WCPHelper {
     }
 
     /**
+     * Commit changes to the master
+     *
+     * @access public
+     * @return boolean
+     */
+    function commit() {
+        // TODO: Write commit function
+    }
+
+    /**
      * Revert the child
      *
      * @access public

@@ -25,6 +25,7 @@ class WCPViewDifferences extends JView {
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Differences') . ' ]</small></small>', 'generic.png');
         JToolBarHelper::custom('createPatch', 'new.png', 'new.png', 'Create Patch');
         JToolBarHelper::custom('syncChild', '', '', 'Synchronize', '', false);
+        JToolBarHelper::custom('commit', 'save.png', 'save.png', 'Commit');
         JToolBarHelper::custom('revertChild', 'restore.png', 'restore.png', 'Revert');
         JToolBarHelper::custom('refreshDiff', 'refresh.png', 'refresh.png', 'Refresh', '', false);
         JToolBarHelper::custom('cancel', 'back.png', 'back.png', 'Back', '', false);

@@ -33,6 +33,7 @@ class WCPController extends JController {
         $this->registerTask('refreshDiff', 'refreshDiff');
         $this->registerTask('createPatch', 'createPatch');
         $this->registerTask('applyPatch', 'applyPatch');
+        $this->registerTask('commit', 'commit');
         $this->registerTask('revertChild', 'revertChild');
         $this->registerTask('syncChild', 'syncChild');
         // TODO: Remove this task
@@ -106,6 +107,11 @@ class WCPController extends JController {
             else
                 $this->setRedirect('index.php?option=com_wcp&task=applyPatch');
         }
+    }
+
+    function commit() {
+        WCPHelper::commit();
+        $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Commit completed'));
     }
 
     function revertChild() {
