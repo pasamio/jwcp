@@ -767,7 +767,88 @@ class WCPHelper {
      * @return boolean
      */
     function commit() {
-        // TODO: Write commit function
+        global $mainframe;
+        $changes = JRequest::getVar('cid');
+        $db =& JFactory::getDBO();
+        $master_db =& self::getMasterDBO();
+
+        $files = $tables = $rows = array();
+        foreach($changes as $i => $change)
+            if(file_exists(JPATH_ROOT.DS.$change))
+                $files[] = $change;
+            elseif(is_numeric($change))
+                $rows[] = $change;
+            elseif(true)
+                $tables[] = $change;
+
+        // Debug: echo '<pre>', print_r($files, true), '</pre>';
+        // Debug: echo '<pre>', print_r($tables, true), '</pre>';
+        // Debug: echo '<pre>', print_r($rows, true), '</pre>';
+
+        // Commit files
+        jimport('joomla.filesystem.file');
+        $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
+        $path = $db->loadResult();
+        $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
+        foreach($files as $i => $file)
+            JFile::copy(JPATH_ROOT.DS.$file, $master_root.DS.$file);
+
+        // Commit database
+        foreach($tables as $table) {
+            list($action, $table) = sscanf($table, '%s %s');
+            switch($action) {
+                case 'add':
+                    list($table_ddl) = array_values($db->getTableCreate($table));
+                    $table_ddl = preg_replace('/'.str_replace('#__', $db->_table_prefix, $table).'/', $table, $table_ddl, 1);
+                    $master_db->setQuery($table_ddl);
+                    $master_db->query();
+                    $db->setQuery('select * from ' . $table);
+                    $rows = $db->loadObjectList();
+                    foreach($rows as $row)
+                        $master_db->insertObject($table, $row);
+                    break;
+                case 'delete':
+                    $master_db->setQuery('drop table if exists ' . $table);
+                    $master_db->query();
+                    break;
+            }
+        }
+
+        // Commit rows
+        foreach($rows as $row) {
+            $db->setQuery('select action, table_name, table_key, value from #__log_queries where id = ' . $row);
+            $change = $db->loadObject();
+            if(empty($change->action))
+                continue;
+
+            switch($change->action) {
+                case 'insert':
+                case 'update':
+                    $db->setQuery("select * from $change->table_name where $change->table_key = '$change->value'");
+                    $original = $db->loadAssoc();
+
+                    foreach($original as $key => $val)
+                        $original[$key] = $db->isQuoted($key) ? $db->Quote($val) : (int) $val; // TODO: make sure NULL values will not cause issues
+
+                    $original = implode(',', $original);
+                    $master_db->setQuery("replace into " . str_replace($db->_table_prefix, '#__', $change->table_name) . " values ($original)");
+                    $master_db->query();
+
+                    // Remove from query log - remember: id is changed after store
+                    $db->setQuery("delete from #__log_queries where table_name = '$change->table_name' and table_key = '$change->table_key' and value = '$change->value'");
+                    $db->query();
+                case 'delete':
+                    $master_db->setQuery("delete from " . str_replace($db->_table_prefix, '#__', $change->table_name) . " where $change->table_key = '$change->value'");
+                    $master_db->query();
+
+                    // Remove from query log - remember: id is changed after delete
+                    $db->setQuery("delete from #__log_queries where table_name = '$change->table_name' and table_key = '$change->table_key' and value = '$change->value'");
+                    $db->query();
+                    break;
+            }
+        }
+
+        return true;
     }
 
     /**
