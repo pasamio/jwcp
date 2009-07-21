@@ -837,6 +837,7 @@ class WCPHelper {
                     // Remove from query log - remember: id is changed after store
                     $db->setQuery("delete from #__log_queries where table_name = '$change->table_name' and table_key = '$change->table_key' and value = '$change->value'");
                     $db->query();
+                    break;
                 case 'delete':
                     $master_db->setQuery("delete from " . str_replace($db->_table_prefix, '#__', $change->table_name) . " where $change->table_key = '$change->value'");
                     $master_db->query();
