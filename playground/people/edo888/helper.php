@@ -185,9 +185,9 @@ class WCPHelper {
         $child_db->setQuery("create table #__log_queries (
                 `id` int(11) unsigned not null auto_increment,
                 `action` enum('insert', 'update', 'delete') not null,
-                `table_name` varchar(20) not null,
-                `table_key` varchar(20) not null,
-                `value` varchar(20) not null,
+                `table_name` varchar(255) not null,
+                `table_key` varchar(255) not null,
+                `value` varchar(255) not null,
                 `date` timestamp not null default current_timestamp,
                 primary key (`id`),
                 unique key `id` (`id`),
@@ -964,11 +964,15 @@ class WCPHelper {
      */
     function syncChild() {
         global $mainframe;
-
         $db =& JFactory::getDBO();
+        $master_db =& self::getMasterDBO();
+        $master_db->debug(1);
+        $db->debug(1);
+
         $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
         $path = $db->loadResult();
 
+        # Synchronizing files
         // Get all files on master and child, which are newer than the internal timer
         // then update to child the newer ones, but keep those which are already modified
         // on child
@@ -991,8 +995,97 @@ class WCPHelper {
 
         // TODO: Treat configuration.php and other special files cases separately
 
-        // TODO: Write tables sync part
+        # Synchronizing tables
+        // As we don't know which table rows are modified on the master website,
+        // we need to keep those, which are modified on the child, and replace
+        // the rest from the master to child
+        $master_db->setQuery("show tables like '" . $master_db->_table_prefix . "%'");
+        $master_tables = $master_db->loadResultArray();
+        foreach($master_tables as $master_table) {
+            if(in_array(str_replace($master_db->_table_prefix, '#__', $master_table), self::getExcludeTables()))
+                continue;
 
+            $child_table = str_replace($master_db->_table_prefix, $db->_table_prefix, $master_table);
+            $db->setQuery("show tables like '$child_table'");
+            $db->query();
+            if($db->getNumRows() == 0) {
+                // If the table doesn't exist on the child, create it and copy all the data
+                // and create triggers for new tables
+
+                $master_table_ddl = array_pop($master_db->getTableCreate($master_table));
+                $child_table_ddl = preg_replace('/'.$master_table.'/', $child_table, $master_table_ddl, 1);
+
+                // Create child table
+                $db->setQuery($child_table_ddl);
+                $db->query();
+
+                $master_db->setQuery('select * from '.$master_table);
+                $master_rows = $master_db->loadObjectList();
+                foreach($master_rows as $master_row)
+                    $db->insertObject($child_table, $master_row);
+
+                // Create triggers for child table
+                $key = self::getPrimaryKeyField($db, $child_table);
+                if($key != '') {
+                    $db->setQuery("create trigger on_insert_$child_table after insert on $child_table for each row " .
+                        "replace into #__log_queries (action, table_name, table_key, value) values('insert', '$child_table', '$key', new.$key)");
+                    $db->query();
+
+                    $db->setQuery("create trigger on_update_$child_table after update on $child_table for each row " .
+                        "replace into #__log_queries (action, table_name, table_key, value) values('update', '$child_table', '$key', old.$key)");
+                    $db->query();
+
+                    $db->setQuery("create trigger on_delete_$child_table after delete on $child_table for each row " .
+                        "replace into #__log_queries (action, table_name, table_key, value) values('delete', '$child_table', '$key', old.$key)");
+                    $db->query();
+                }
+
+                // Increase child table auto_increment values
+                $db->setQuery("select auto_increment from information_schema.tables where table_schema = database() and table_name = '$child_table'");
+                $table_auto_increment = $db->loadResult();
+                if($table_auto_increment != '') {
+                    $table_auto_increment *= 10; // TODO: Select different multiplier depending on $table_auto_increment value
+                    $db->setQuery("alter table $child_table auto_increment = $table_auto_increment");
+                    $db->query();
+                }
+
+                // Add note
+                $mainframe->enqueueMessage("Table $child_table created");
+
+            } else {
+                // Table exists on the child, replace all non-modified rows from master
+
+                $key = self::getPrimaryKeyField($db, $child_table);
+
+                // Get modified rows of the table
+                $db->setQuery("select value from #__log_queries where table_name = '$child_table'");
+                $modified_rows = $db->loadResultArray();
+                foreach($modified_rows as $i => $val)
+                    $modified_rows[$i] = $db->Quote($val);
+                $modified_rows = implode(',', $modified_rows);
+                // Debug: echo '<pre>', print_r($modified_rows, true), '</pre>';
+
+                if($modified_rows !== '')
+                    $master_db->setQuery("select * from $master_table where $key not in ($modified_rows)");
+                else
+                    $master_db->setQuery("select * from $master_table");
+                $master_rows = $master_db->loadObjectList();
+                foreach($master_rows as $master_row) {
+                    $db->updateObject($child_table, $master_row, $key, $master_row->$key);
+
+                    // delete triggered query
+                    $db->setQuery("delete from #__log_queries where table_name = '$child_table' and value = '" . $master_row->$key . "'");
+                    $db->query();
+                }
+
+                // Add note
+                $mainframe->enqueueMessage("Table $child_table synchronized");
+
+            }
+
+        }
+
+        return true;
     }
 
     /**
