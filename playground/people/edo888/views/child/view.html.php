@@ -78,6 +78,7 @@ class WCPViewChild extends JView {
             $exclude_tables[] = '#__core_log_searches';
             $exclude_tables[] = '#__groups';
             $exclude_tables[] = '#__migration_backlinks';
+            $exclude_tables[] = '#__modules_menu';
             $exclude_tables[] = '#__session';
             $exclude_tables[] = '#__stats_agents';
             $exclude_tables[] = '#__wcp';

@@ -111,16 +111,28 @@ class WCPController extends JController {
 
     function commit() {
         WCPHelper::commit();
+
+        $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
+        $cache->clean('com_wcp', 'group');
+
         $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Commit completed'));
     }
 
     function revertChild() {
         WCPHelper::revertChild();
+
+        $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
+        $cache->clean('com_wcp', 'group');
+
         $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Revert completed'));
     }
 
     function syncChild() {
         WCPHelper::syncChild();
+
+        $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
+        $cache->clean('com_wcp', 'group');
+
         $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Synchronization proccess completed'));
     }
 
