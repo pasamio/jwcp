@@ -185,9 +185,9 @@ class WCPHelper {
         $child_db->setQuery("create table #__log_queries (
                 `id` int(11) unsigned not null auto_increment,
                 `action` enum('insert', 'update', 'delete') not null,
-                `table_name` varchar(255) not null,
-                `table_key` varchar(255) not null,
-                `value` varchar(255) not null,
+                `table_name` varchar(50) not null,
+                `table_key` varchar(50) not null,
+                `value` varchar(50) not null,
                 `date` timestamp not null default current_timestamp,
                 primary key (`id`),
                 unique key `id` (`id`),
