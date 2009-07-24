@@ -790,8 +790,14 @@ class WCPHelper {
         $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
         $path = $db->loadResult();
         $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
-        foreach($files as $i => $file)
-            JFile::copy(JPATH_ROOT.DS.$file, $master_root.DS.$file);
+        foreach($files as $file) {
+            if(!is_dir(dirname($master_root.DS.$file)))
+                JFolder::create(dirname($master_root.DS.$file));
+            if(!JFile::copy(JPATH_ROOT.DS.$file, $master_root.DS.$file))
+                JError::raiseWarning(21, 'Failed to copy ' . JPATH_ROOT.DS.$file . ' to ' . $master_root.DS.$file);
+            else
+                $mainframe->enqueueMessage("$file commited successfully");
+        }
 
         // Commit database
         foreach($tables as $table) {
@@ -990,8 +996,14 @@ class WCPHelper {
         // Debug: echo '<pre>', print_r($diffs, ture), '</pre>';
 
         jimport('joomla.filesystem.file');
-        foreach($diffs as $file)
-            JFile::copy($master_root . DS . $file, JPATH_ROOT . DS . $file);
+        foreach($diffs as $file) {
+            if(!is_dir(dirname(JPATH_ROOT.DS.$file)))
+                JFolder::create(dirname(JPATH_ROOT.DS.$file));
+            if(!JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file))
+                JError::raiseWarning(21, 'Failed to copy ' . $master_root.DS.$file . ' to ' . JPATH_ROOT.DS.$file);
+            else
+                $mainframe->enqueueMessage("$file synced successfully");
+        }
 
         // TODO: Treat configuration.php and other special files cases separately
 
