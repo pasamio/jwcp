@@ -21,6 +21,7 @@ class WCPController extends JController {
 
         require_once(JPATH_COMPONENT.DS.'helper.php');
         require_once(JPATH_COMPONENT.DS.'tables'.DS.'wcp.php');
+        jimport('joomla.filesystem.file');
 
         // Register tasks
         $this->registerTask('add', 'edit');

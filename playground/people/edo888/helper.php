@@ -126,19 +126,18 @@ class WCPHelper {
      * @return boolean True on success, False on failure
      */
     function createChild() {
-        // TODO: Add friendly error reporting
-
         // Try to set the script execution time to unlimited, if php is in safe mode there is no workaround
         set_time_limit(0);
 
         global $mainframe;
-
         $master_db =& JFactory::getDBO();
         $child_db = new JDatabaseMySQL(array('host' => JRequest::getVar('host'), 'user' => JRequest::getVar('user'), 'password' => JRequest::getVar('password'), 'database' => JRequest::getVar('database'), 'prefix' => JRequest::getVar('prefix')));
         // Debug: $child_db->debug(1);
 
-        if(!$child_db->connected())
+        if(!$child_db->connected()) {
+            JError::raiseError(0, JText::_('Cannot connect to the child database'));
             return false;
+        }
 
         // Insert new child to #__wcp
         $wcp_table = new TableWCP($master_db);
@@ -244,19 +243,16 @@ class WCPHelper {
             }
         }
 
-        // Copy all files and folders to the child
-        $master_folders = JFolder::folders(JPATH_ROOT, '.', true, true);
-        // Debug: echo '<pre>', print_r($master_folders, true), '</pre>';
-
-        $master_files = JFolder::files(JPATH_ROOT, '.', true, true);
+        // TODO: Don't copy exclude files
+        $master_files = JFolderWCP::files(JPATH_ROOT);
         // Debug: echo '<pre>', print_r($master_files, true), '</pre>';
 
-        jimport('joomla.filesystem.file');
-        foreach($master_folders as $master_folder)
-            JFolder::create(str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_folder));
-        foreach($master_files as $master_file)
-            JFile::copy($master_file, str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_file), '', false);
-
+        foreach($master_files as $master_file) {
+            $dest = str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_file);
+            if(!is_dir(dirname($dest)))
+                JFolder::create(dirname($dest));
+            JFile::copy($master_file, $dest);
+        }
 
         // Configure the child
         $config = new JRegistry('config');
@@ -343,7 +339,6 @@ class WCPHelper {
         $fname = JPATH_CONFIGURATION.DS.JRequest::getVar('path').DS.'configuration.php';
 
         // Get the config registry in PHP class format and write it to configuation.php
-        jimport('joomla.filesystem.file');
         JFile::write($fname, $config->toString('PHP', 'config', array('class' => 'JConfig')));
 
         return true;
@@ -432,7 +427,6 @@ class WCPHelper {
         $config->loadArray($config_array);
 
         // Get the config registry in PHP class format and write it to configuation.php
-        jimport('joomla.filesystem.file');
         JFile::write($fname, $config->toString('PHP', 'config', array('class' => 'JConfig')));
     }
 
@@ -443,6 +437,9 @@ class WCPHelper {
      * @return bool
      */
     function removeChild() {
+        // Try to set the script execution time to unlimited, if php is in safe mode there is no workaround
+        set_time_limit(0);
+
         $db =& JFactory::getDBO();
         $wcp_table = new TableWCP($db);
 
@@ -458,11 +455,13 @@ class WCPHelper {
             $child_db = new JDatabaseMySQL(array('host' => $database->host, 'user' => $database->user, 'password' => $database->password, 'database' => $database->database, 'prefix' => $database->prefix));
             // Debug: $child_db->debug(1);
 
-            $child_db->setQuery("show tables like '" . $child_db->_table_prefix . "%'");
-            $child_tables = $child_db->loadResultArray();
-            // Debug: echo '<pre>', print_r($child_tables, true), '</pre>';
-            foreach($child_tables as $child_table) {
-                if(substr($child_table, 0, 4) == $database->prefix) {
+            if(!$child_db->connected())
+                JError::raiseWarning(0, JText::_('Cannot connect to child database to delete tables'));
+            else {
+                $child_db->setQuery("show tables like '" . $child_db->_table_prefix . "%'");
+                $child_tables = $child_db->loadResultArray();
+                // Debug: echo '<pre>', print_r($child_tables, true), '</pre>';
+                foreach($child_tables as $child_table) {
                     $child_db->setQuery('drop table ' . $child_table);
                     $child_db->query();
                 }
@@ -539,15 +538,19 @@ class WCPHelper {
     function getDatabaseDifferences() {
         global $mainframe;
         $diffs = array();
-
-        // Get connection to master db
         $master_db =& self::getMasterDBO();
-        $master_db->setQuery("show tables like '" . $master_db->_table_prefix . "%'");
-        $master_tables = $master_db->loadResultArray();
-        foreach($master_tables as $i => $table)
-            $master_tables[$i] = str_replace($master_db->_table_prefix, '#__', $table);
-
         $child_db =& JFactory::getDBO();
+
+        if(!$master_db->connected()) {
+            JError::raiseNotice(0, JText::_('Cannot connect to master database to get database differences'));
+            $master_tables = array();
+        } else {
+            $master_db->setQuery("show tables like '" . $master_db->_table_prefix . "%'");
+            $master_tables = $master_db->loadResultArray();
+            foreach($master_tables as $i => $table)
+                $master_tables[$i] = str_replace($master_db->_table_prefix, '#__', $table);
+        }
+
         $child_db->setQuery("show tables like '" . $child_db->_table_prefix . "%'");
         $child_tables = $child_db->loadResultArray();
         foreach($child_tables as $i => $table)
@@ -663,7 +666,6 @@ class WCPHelper {
         $sql = implode(";\n", $sql) . ';';
         $patch_id = uniqid('patch_');
         $patch_file_sql = JPATH_ROOT.DS.$patch_id.'.sql';
-        jimport('joomla.filesystem.file');
         JFile::write($patch_file_sql, $sql);
         $files[] = $patch_file_sql;
 
@@ -701,20 +703,18 @@ class WCPHelper {
      * @return boolean
      */
     function applyPatch() {
-        // TODO: Add friendly error reporting
-
         // Get the uploaded file information
         $userfile = JRequest::getVar('patch_file', null, 'files', 'array');
 
         // If there is no uploaded file, we have a problem...
         if(empty($userfile['name'])) {
-            JError::raiseWarning('SOME_ERROR_CODE', JText::_('No file selected'));
+            JError::raiseWarning(0, JText::_('No file selected'));
             return false;
         }
 
         // Check if there was a problem uploading the file.
         if($userfile['error'] or $userfile['size'] < 1) {
-            JError::raiseWarning('SOME_ERROR_CODE', JText::_('Cannot upload the file'));
+            JError::raiseWarning(0, JText::_('Cannot upload the file'));
             return false;
         }
 
@@ -723,7 +723,6 @@ class WCPHelper {
         $tmp_src  = $userfile['tmp_name'];
 
         // Move uploaded file
-        jimport('joomla.filesystem.file');
         JFile::upload($tmp_src, $tmp_dest);
 
         // Unpack the patch file
@@ -745,7 +744,7 @@ class WCPHelper {
         JFile::delete($sql_file);
 
         // Replace files
-        $files = JFolder::files($patch_dest, '.', true, true);
+        $files = JFolderWCP::files($patch_dest);
         // Debug: echo '<pre>', print_r($files, true), '</pre>';
         foreach($files as $file) {
             // Debug: echo '<pre>', $file, ' -> ', str_replace($patch_dest, JPATH_ROOT, $file), '</pre>';
@@ -786,7 +785,6 @@ class WCPHelper {
         // Debug: echo '<pre>', print_r($rows, true), '</pre>';
 
         // Commit files
-        jimport('joomla.filesystem.file');
         $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
         $path = $db->loadResult();
         $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
@@ -884,12 +882,12 @@ class WCPHelper {
         // Debug: echo '<pre>', print_r($rows, true), '</pre>';
 
         // Revert files
-        jimport('joomla.filesystem.file');
         $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
         $path = $db->loadResult();
         $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
         foreach($files as $i => $file)
-            JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file);
+            if(!JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file))
+                JError::raiseError(0, "Cannot revert " . $master_root.DS.$file . ", original file doesn't exist");
 
         // Revert database
         foreach($tables as $table) {
@@ -900,14 +898,18 @@ class WCPHelper {
                     $db->query();
                     break;
                 case 'delete':
-                    list($table_ddl) = array_values($master_db->getTableCreate($table));
-                    $table_ddl = preg_replace('/'.str_replace('#__', $master_db->_table_prefix, $table).'/', $table, $table_ddl, 1);
-                    $db->setQuery($table_ddl);
-                    $db->query();
-                    $master_db->setQuery('select * from ' . $table);
-                    $rows = $master_db->loadObjectList();
-                    foreach($rows as $row)
-                        $db->insertObject($table, $row);
+                    if(!$master_db->connected())
+                        JError::raiseError(0, "Cannot connect to master database to revert table $table");
+                    else {
+                        list($table_ddl) = array_values($master_db->getTableCreate($table));
+                        $table_ddl = preg_replace('/'.str_replace('#__', $master_db->_table_prefix, $table).'/', $table, $table_ddl, 1);
+                        $db->setQuery($table_ddl);
+                        $db->query();
+                        $master_db->setQuery('select * from ' . $table);
+                        $rows = $master_db->loadObjectList();
+                        foreach($rows as $row)
+                            $db->insertObject($table, $row);
+                    }
                     break;
             }
         }
@@ -930,31 +932,35 @@ class WCPHelper {
                     break;
                 case 'update':
                 case 'delete':
-                    $master_db->setQuery("select * from " . str_replace($db->_table_prefix, '#__', $change->table_name) . " where $change->table_key = '$change->value'");
-                    $original = $master_db->loadAssoc();
+                    if(!$master_db->connected())
+                        JError::raiseError(0, "Cannot connect to master database to revert row " . $change->table_name . "." . $change->table_key . "=" . $change->value);
+                    else {
+                        $master_db->setQuery("select * from " . str_replace($db->_table_prefix, '#__', $change->table_name) . " where $change->table_key = '$change->value'");
+                        $original = $master_db->loadAssoc();
 
-                    if(count($original) == 0) {
-                        // The original row doesn't exist in master table, deleting row from child_db
-                        $db->setQuery("delete from $change->table_name where $change->table_key = '$change->value'");
+                        if(count($original) == 0) {
+                            // The original row doesn't exist in master table, deleting row from child_db
+                            $db->setQuery("delete from $change->table_name where $change->table_key = '$change->value'");
+                            $db->query();
+
+                            // Remove from query log - remember: id is changed after delete
+                            $db->setQuery("delete from #__log_queries where table_name = '$change->table_name' and table_key = '$change->table_key' and value = '$change->value'");
+                            $db->query();
+
+                            break;
+                        }
+
+                        foreach($original as $key => $val)
+                            $original[$key] = $master_db->isQuoted($key) ? $master_db->Quote($val) : (int) $val; // TODO: make sure NULL values will not cause issues
+
+                        $original = implode(',', $original);
+                        $db->setQuery("replace into $change->table_name values ($original)");
                         $db->query();
 
-                        // Remove from query log - remember: id is changed after delete
+                        // Remove from query log - remember: id is changed after store
                         $db->setQuery("delete from #__log_queries where table_name = '$change->table_name' and table_key = '$change->table_key' and value = '$change->value'");
                         $db->query();
-
-                        break;
                     }
-
-                    foreach($original as $key => $val)
-                        $original[$key] = $master_db->isQuoted($key) ? $master_db->Quote($val) : (int) $val; // TODO: make sure NULL values will not cause issues
-
-                    $original = implode(',', $original);
-                    $db->setQuery("replace into $change->table_name values ($original)");
-                    $db->query();
-
-                    // Remove from query log - remember: id is changed after store
-                    $db->setQuery("delete from #__log_queries where table_name = '$change->table_name' and table_key = '$change->table_key' and value = '$change->value'");
-                    $db->query();
                     break;
             }
         }
@@ -972,8 +978,11 @@ class WCPHelper {
         global $mainframe;
         $db =& JFactory::getDBO();
         $master_db =& self::getMasterDBO();
-        $master_db->debug(1);
-        $db->debug(1);
+
+        if(!$master_db->connected()) {
+            JError::raiseError(0, JText::_('Cannot connect to master databasa for synchronizing the child'));
+            return false;
+        }
 
         $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
         $path = $db->loadResult();
@@ -995,7 +1004,6 @@ class WCPHelper {
         $diffs = array_diff($diffs_master, $diffs_child);
         // Debug: echo '<pre>', print_r($diffs, ture), '</pre>';
 
-        jimport('joomla.filesystem.file');
         foreach($diffs as $file) {
             if(!is_dir(dirname(JPATH_ROOT.DS.$file)))
                 JFolder::create(dirname(JPATH_ROOT.DS.$file));
