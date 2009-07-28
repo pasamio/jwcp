@@ -19,7 +19,7 @@ $document->addStyleDeclaration('.icon-32-refresh {background-image:url(./templat
                 <?php echo JText::_('NUM'); ?>
             </th>
             <th width="20">
-                <input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->items)+count($this->table_items); ?>);" />
+                <input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->items)+count($this->db_items)+count($this->table_items); ?>);" />
             </th>
             <th>
                 <?php echo JText::_('Path') . ' / ' . JText::_('Table Event'); ?>
