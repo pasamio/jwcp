@@ -69,6 +69,7 @@ $document->addStyleDeclaration('.icon-32-refresh {background-image:url(./templat
         $row = new JObject;
         $row->set('id', $this->db_items[$j]->id);
         $row->set('action', '<font color="#0000cc">'.$this->db_items[$j]->action . '</font> <b>' . $this->db_items[$j]->table_name . '</b>');
+        $row->set('mdate', $this->db_items[$j]->mdate);
         $checked = JHTML::_('grid.id', $i, $row->id);
         ?>
         <tr class="<?php echo "row$k"; ?>">
@@ -82,7 +83,7 @@ $document->addStyleDeclaration('.icon-32-refresh {background-image:url(./templat
                 <?php echo $row->action; ?>
             </td>
             <td align="center">
-                -
+                <?php echo $row->mdate; ?>
             </td>
         </tr>
         <?php

@@ -656,6 +656,8 @@ class WCPHelper {
             $diff->set('id', 'add ' . $table);
             $diff->set('action', 'add table');
             $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
+            $child_db->setQuery("select create_time from information_schema.tables where table_schema = database() and table_name = '" . str_replace('#__', $child_db->_table_prefix, $table) . "'");
+            $diff->set('mdate', date('r', strtotime($child_db->loadResult())));
             $diffs[] = $diff;
         }
 
@@ -664,6 +666,7 @@ class WCPHelper {
             $diff->set('id', 'delete ' . $table);
             $diff->set('action', 'delete table');
             $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
+            $diff->set('mdate', '-');
             $diffs[] = $diff;
         }
 
@@ -672,6 +675,8 @@ class WCPHelper {
             $diff->set('id', 'update ' . $table);
             $diff->set('action', 'update table');
             $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
+            $child_db->setQuery("select update_time from information_schema.tables where table_schema = database() and table_name = '" . str_replace('#__', $child_db->_table_prefix, $table) . "'");
+            $diff->set('mdate', date('r', strtotime($child_db->loadResult())));
             $diffs[] = $diff;
         }
 
