@@ -37,8 +37,19 @@ class WCPHelper {
      * @return int
      */
     function getInternalTime() {
-        // TODO: Write get internal time function
-        return filemtime(JPATH_ROOT.DS.'configuration.php');
+        return JRequest::getVar('internal_time', filemtime(JPATH_ROOT.DS.'configuration.php'), 'COOKIE', 'int');
+    }
+
+    /**
+     * Sets the internal time
+     *
+     * @access public
+     * @param int Internal time
+     */
+    function setInternalTime($internal_time = null) {
+        if($internal_time == null)
+            $internal_time = strtotime(JRequest::getVar('internal_time', date('Y-m-d H:i:s', WCPHelper::getInternalTime()), 'POST'));
+        setcookie('internal_time', $internal_time, time() + 36000);
     }
 
     /**
@@ -1217,7 +1228,8 @@ class WCPHelper {
 
         }
 
-        // TODO: Move internal timer forward
+        // Move internal timer forward
+        self::setInternalTime(time());
 
         return true;
     }
