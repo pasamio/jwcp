@@ -499,13 +499,19 @@ class WCPHelper {
      * @return array
      */
     function getDifferences($path = JPATH_ROOT) {
+        global $mainframe;
         $diffs = array();
+        $db =& JFactory::getDBO();
 
         // Get internal timer
         $internal_timer = self::getInternalTime();
 
         // Get exclude files list
         $exclude_files = self::getExcludeFiles($path);
+
+        $db->setQuery('select path from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
+        $child_path = $db->loadResult();
+        $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $child_path), '', $path));
 
         $child_files = JFolderWCP::files($path, array_merge($exclude_files, array('.svn', 'CVS')));
         foreach($child_files as $child_file) {
@@ -515,8 +521,10 @@ class WCPHelper {
             // Make file path unix format
             $child_file = str_replace(DS, '/', $child_file);
 
-            $m_time = filemtime($path . DS . $child_file);
-            if($m_time > $internal_timer)
+            $orig_m_time = $m_time = filemtime($path . DS . $child_file);
+            if(file_exists($master_root . DS . $child_file))
+                $orig_m_time = filemtime($master_root . DS . $child_file);
+            if($m_time > $internal_timer and $m_time >= $orig_m_time)
                 $diffs[] = array($child_file, date('r', $m_time));
         }
 
@@ -601,6 +609,35 @@ class WCPHelper {
         foreach($tables_updated as $i => $table)
             $tables_updated[$i] = str_replace($child_db->_table_prefix, '#__', $table);
         $tables_updated = array_diff($tables_updated, $tables_added, $exclude_tables);
+
+        // Compare changes with master - see if tables already exist
+        if($master_db->connected())
+            if(isset($tables_added[0])) {
+                foreach($tables_added as $table)
+                    $tables_added_list[] = $master_db->Quote(str_replace('#__', $master_db->_table_prefix, $table));
+                $tables_added_list = implode(',', $tables_added_list);
+                $master_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name in ($tables_added_list)");
+                $tables_created = $master_db->loadResultArray();
+                foreach($tables_created as $i => $table)
+                    $tables_created[$i] = str_replace($master_db->_table_prefix, '#__', $table);
+                $tables_added = array_diff($tables_added, $tables_created);
+            }
+
+        // Compare changes with master - see if child table is updated after master table
+        /* Need to be handled with internal timer comparison
+        if($master_db->connected())
+            if(isset($tables_updated[0]))
+                foreach($tables_updated as $table) {
+                    $child_db->setQuery("select update_time from information_schema.tables where table_schema = database() and table_name = '" . str_replace('#__', $child_db->_table_prefix, $table) . "'");
+                    $table_update_time = $child_db->loadResult();
+                    $master_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name = '" . str_replace('#__', $master_db->_table_prefix, $table) . "' and update_time > '$table_update_time'");
+                    $master_tables_updated = $master_db->loadResultArray();
+                    foreach($master_tables_updated as $i => $table)
+                        $master_tables_updated[$i] = str_replace($master_db->_table_prefix, '#__', $table);
+                    $tables_updated = array_diff($tables_updated, $master_tables_updated);
+                }
+        */
+
         // Debug: echo '<pre>', print_r($tables_updated, true), '</pre>';
 
         foreach($tables_added as $table) {
@@ -914,6 +951,8 @@ class WCPHelper {
             }
         }
 
+        // TODO: Move internal timer forward
+
         return true;
     }
 
@@ -1177,6 +1216,8 @@ class WCPHelper {
             }
 
         }
+
+        // TODO: Move internal timer forward
 
         return true;
     }
