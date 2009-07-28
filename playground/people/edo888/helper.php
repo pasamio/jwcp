@@ -61,6 +61,20 @@ class WCPHelper {
     }
 
     /**
+     * Determines number of primary key fields
+     *
+     * @access public
+     * @param object DBO
+     * @param string Table name
+     * @return int
+     */
+    function getPrimaryKeyCount($db, $table) {
+        $table = str_replace('#__', $db->_table_prefix, $table);
+        $db->setQuery("select count(*) from information_schema.columns where table_schema = database() and table_name = '$table' and column_key = 'PRI'");
+        return $db->loadResult();
+    }
+
+    /**
      * Returns connection link to master database
      *
      * @access public
@@ -210,15 +224,15 @@ class WCPHelper {
             $child_db->query();
 
             if(!in_array($child_table, array('#__core_log_items', '#__core_log_searches', '#__session', '#__stats_agents'))) {
-                $master_db->setQuery('select * from '.$master_table);
+                $master_db->setQuery('select * from ' . $master_table);
                 $master_rows = $master_db->loadObjectList();
                 foreach($master_rows as $master_row)
                     $child_db->insertObject($child_table, $master_row);
 
-                // Create triggers for child table
+                // Create triggers for child table if number of primary key fields is one
                 $child_table = str_replace('#__', $child_db->_table_prefix, $child_table);
-                $key = self::getPrimaryKeyField($child_db, $child_table);
-                if($key != '') {
+                if(self::getPrimaryKeyCount($child_db, $child_table) == 1) {
+                    $key = self::getPrimaryKeyField($child_db, $child_table);
                     $child_db->setQuery("create trigger on_insert_$child_table after insert on $child_table for each row " .
                         "replace into #__log_queries (action, table_name, table_key, value) values('insert', '$child_table', '$key', new.$key)");
                     $child_db->query();
@@ -518,11 +532,15 @@ class WCPHelper {
      */
     function getTableDifferences() {
         $diffs = array();
+        $db =& JFactory::getDBO();
 
         // Get internal timer
         $internal_timer = date('Y-m-d H:i:s', self::getInternalTime());
 
-        $db =& JFactory::getDBO();
+        // Correct time zones for MySQL
+        $db->setQuery("set session time_zone = '" . date('P', time()) . "'");
+        $db->query();
+
         $db->setQuery("select id, action, table_name, table_key, value, unix_timestamp(date) as mdate from #__log_queries where date > '$internal_timer' order by date asc");
         $diffs = $db->loadObjectList();
 
@@ -558,17 +576,32 @@ class WCPHelper {
 
         $exclude_tables = self::getExcludeTables();
 
-        // Get all added/deleted tables
-        /* It's possible to get created tables from information_schema.tables
+        // Get all added/deleted/updated tables
+
         $internal_timer = date('Y-m-d H:i:s', self::getInternalTime());
+
+        // Correct time zones for MySQL
+        $child_db->setQuery("set session time_zone = '" . date('P', time()) . "'");
+        $child_db->query();
+
         $child_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name like '$child_db->_table_prefix%' and create_time > '$internal_timer'");
-        $tables_added = array_diff($child_db->loadResultArray(), $exclude_tables);
-        */
-        $tables_added = array_diff($child_tables, $master_tables, $exclude_tables);
+        $tables_added = $child_db->loadResultArray();
+        foreach($tables_added as $i => $table)
+            $tables_added[$i] = str_replace($child_db->_table_prefix, '#__', $table);
+        $tables_added = array_diff($tables_added, $exclude_tables);
+
+        //$tables_added = array_diff($child_tables, $master_tables, $exclude_tables);
         // Debug: echo '<pre>', print_r($tables_added, true), '</pre>';
 
         $tables_deleted = array_diff($master_tables, $child_tables, $exclude_tables);
         // Debug: echo '<pre>', print_r($tables_deleted, true), '</pre>';
+
+        $child_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name like '$child_db->_table_prefix%' and update_time > '$internal_timer' and table_name not in (select distinct table_name from #__log_queries)");
+        $tables_updated = $child_db->loadResultArray();
+        foreach($tables_updated as $i => $table)
+            $tables_updated[$i] = str_replace($child_db->_table_prefix, '#__', $table);
+        $tables_updated = array_diff($tables_updated, $exclude_tables);
+        // Debug: echo '<pre>', print_r($tables_updated, true), '</pre>';
 
         foreach($tables_added as $table) {
             $diff = new JObject;
@@ -582,6 +615,14 @@ class WCPHelper {
             $diff = new JObject;
             $diff->set('id', 'delete ' . $table);
             $diff->set('action', 'delete table');
+            $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
+            $diffs[] = $diff;
+        }
+
+        foreach($tables_updated as $table) {
+            $diff = new JObject;
+            $diff->set('id', 'delete ' . $table);
+            $diff->set('action', 'update table');
             $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
             $diffs[] = $diff;
         }
@@ -1045,8 +1086,8 @@ class WCPHelper {
                     $db->insertObject($child_table, $master_row);
 
                 // Create triggers for child table
-                $key = self::getPrimaryKeyField($db, $child_table);
-                if($key != '') {
+                if(self::getPrimaryKeyCount($db, $child_table) == 1) {
+                    $key = self::getPrimaryKeyField($db, $child_table);
                     $db->setQuery("create trigger on_insert_$child_table after insert on $child_table for each row " .
                         "replace into #__log_queries (action, table_name, table_key, value) values('insert', '$child_table', '$key', new.$key)");
                     $db->query();
