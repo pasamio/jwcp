@@ -12,6 +12,16 @@ $document =& JFactory::getDocument();
 $document->addStyleDeclaration('.icon-32-refresh {background-image:url(./templates/khepri/images/toolbar/icon-32-refresh.png);}');
 ?>
 <form action="index.php" method="post" name="adminForm">
+    <table>
+        <tr>
+            <td width="100%">
+                <?php echo JText::_('Internal Time'); ?>:
+                <input type="text" title="Internal Time against which differences will be compared" size="22" class="text_area" value="<?php echo date('Y-m-d H:i:s', WCPHelper::getInternalTime()); ?>" name="internal_time" />
+                <button onclick="submitbutton('refreshDiff')">Go</button>
+            </td>
+        </tr>
+    </table>
+
     <table class="adminlist">
     <thead>
         <tr>
@@ -107,7 +117,7 @@ $document->addStyleDeclaration('.icon-32-refresh {background-image:url(./templat
     </table>
 
 <input type="hidden" name="option" value="com_wcp" />
-<input type="hidden" name="task" value="" />
+<input type="hidden" name="task" value="<?php echo JRequest::getVar('task'); ?>" />
 <input type="hidden" name="boxchecked" value="0" />
 <?php echo JHTML::_('form.token'); ?>
 

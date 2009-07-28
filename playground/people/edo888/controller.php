@@ -86,6 +86,8 @@ class WCPController extends JController {
         $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
         $cache->clean('com_wcp', 'group');
 
+        WCPHelper::setInternalTime();
+
         $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('List Refreshed'));
     }
 
