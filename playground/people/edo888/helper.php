@@ -596,11 +596,11 @@ class WCPHelper {
         $tables_deleted = array_diff($master_tables, $child_tables, $exclude_tables);
         // Debug: echo '<pre>', print_r($tables_deleted, true), '</pre>';
 
-        $child_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name like '$child_db->_table_prefix%' and update_time > '$internal_timer' and table_name not in (select distinct table_name from #__log_queries)");
+        $child_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name like '$child_db->_table_prefix%' and update_time > '$internal_timer' and table_name not in (select distinct event_object_table from information_schema.triggers where event_object_schema = database())");
         $tables_updated = $child_db->loadResultArray();
         foreach($tables_updated as $i => $table)
             $tables_updated[$i] = str_replace($child_db->_table_prefix, '#__', $table);
-        $tables_updated = array_diff($tables_updated, $exclude_tables);
+        $tables_updated = array_diff($tables_updated, $tables_added, $exclude_tables);
         // Debug: echo '<pre>', print_r($tables_updated, true), '</pre>';
 
         foreach($tables_added as $table) {
@@ -621,7 +621,7 @@ class WCPHelper {
 
         foreach($tables_updated as $table) {
             $diff = new JObject;
-            $diff->set('id', 'delete ' . $table);
+            $diff->set('id', 'update ' . $table);
             $diff->set('action', 'update table');
             $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
             $diffs[] = $diff;
@@ -686,6 +686,18 @@ class WCPHelper {
                 case 'add':
                     list($table_ddl) = array_values($db->getTableCreate($table));
                     $sql[] = str_replace("\n", '', $table_ddl);
+                    $db->setQuery('select * from ' . $table);
+                    $rows = $db->loadAssocList();
+                    foreach($rows as $row) {
+                        foreach($row as $key => $val)
+                            $row[$key] = $db->isQuoted($key) ? $db->Quote($val) : (int) $val;
+
+                        $row = implode(',', $row);
+                        $sql[] = "insert into $table values ($row)";
+                    }
+                    break;
+                case 'update':
+                    $sql[] = 'truncate table ' . $table;
                     $db->setQuery('select * from ' . $table);
                     $rows = $db->loadAssocList();
                     foreach($rows as $row) {
@@ -852,6 +864,14 @@ class WCPHelper {
                     foreach($rows as $row)
                         $master_db->insertObject($table, $row);
                     break;
+                case 'update':
+                    $master_db->setQuery('truncate table ' . $table);
+                    $master_db->query();
+                    $db->setQuery('select * from ' . $table);
+                    $rows = $db->loadObjectList();
+                    foreach($rows as $row)
+                        $master_db->insertObject($table, $row);
+                    break;
                 case 'delete':
                     $master_db->setQuery('drop table if exists ' . $table);
                     $master_db->query();
@@ -937,6 +957,18 @@ class WCPHelper {
                 case 'add':
                     $db->setQuery('drop table if exists ' . $table);
                     $db->query();
+                    break;
+                case 'update':
+                    if(!$master_db->connected())
+                        JError::raiseError(0, "Cannot connect to master database to revert table $table");
+                    else {
+                        $db->setQuery('truncate table ' . $table);
+                        $db->query();
+                        $master_db->setQuery('select * from ' . $table);
+                        $rows = $master_db->loadObjectList();
+                        foreach($rows as $row)
+                            $db->insertObject($table, $row);
+                    }
                     break;
                 case 'delete':
                     if(!$master_db->connected())
