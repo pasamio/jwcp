@@ -22,6 +22,8 @@ class WCPViewChild extends JView {
      * @access public
      */
 	function display($tpl = null) {
+	    JHTML::_('behavior.tooltip');
+
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . (JRequest::getVar('task', 'edit') == 'edit' ? JText::_('Edit Child') : JText::_('New Child')) . ' ]</small></small>', 'generic.png');
         JToolBarHelper::save();
         JToolBarHelper::apply();
@@ -47,16 +49,10 @@ class WCPViewChild extends JView {
             $child->path = './child';
 
             $exclude_files = array();
-            $exclude_files[] = './cache';
             $exclude_files[] = './includes';
-            $exclude_files[] = './installation';
             $exclude_files[] = './libraries';
-            $exclude_files[] = './logs';
-            $exclude_files[] = './tmp';
             $exclude_files[] = './xmlrpc';
             $exclude_files[] = './configuration.php';
-            $exclude_files[] = './administrator/backups';
-            $exclude_files[] = './administrator/cache';
             $exclude_files[] = './administrator/help';
             $exclude_files[] = './administrator/images';
             $exclude_files[] = './administrator/includes';
@@ -68,20 +64,35 @@ class WCPViewChild extends JView {
             $exclude_files[] = './templates/rhuk_milkyway';
             $exclude_files[] = './templates/system';
 
+            $dont_copy_files = array();
+            $dont_copy_files[] = './cache';
+            $dont_copy_files[] = './logs';
+            $dont_copy_files[] = './tmp';
+            $dont_copy_files[] = './installation';
+            $dont_copy_files[] = './administrator/backups';
+            $dont_copy_files[] = './administrator/cache';
+
             $exclude_tables = array();
             $exclude_tables[] = '#__core_acl_aro';
             $exclude_tables[] = '#__core_acl_aro_groups';
             $exclude_tables[] = '#__core_acl_aro_map';
             $exclude_tables[] = '#__core_acl_aro_sections';
             $exclude_tables[] = '#__core_acl_groups_aro_map';
-            $exclude_tables[] = '#__core_log_items';
-            $exclude_tables[] = '#__core_log_searches';
             $exclude_tables[] = '#__groups';
             $exclude_tables[] = '#__migration_backlinks';
-            $exclude_tables[] = '#__session';
-            $exclude_tables[] = '#__stats_agents';
             $exclude_tables[] = '#__wcp';
-            $exclude_tables[] = '#__log_queries';
+
+            $dont_copy_tables = array();
+            $dont_copy_tables[] = '#__core_log_items';
+            $dont_copy_tables[] = '#__core_log_searches';
+            $dont_copy_tables[] = '#__session';
+            $dont_copy_tables[] = '#__stats_agents';
+            $dont_copy_tables[] = '#__log_queries';
+
+            sort($exclude_files);
+            sort($dont_copy_files);
+            sort($exclude_tables);
+            sort($dont_copy_tables);
 
             $database = new JObject;
             $database->set('host', $mainframe->getCfg('host'));
@@ -107,14 +118,18 @@ class WCPViewChild extends JView {
         } else {
             $params = new JParameter($child->params);
             $exclude_files = json_decode($params->get('exclude_files'));
+            $dont_copy_files = json_decode($params->get('dont_copy_files'));
             $exclude_tables = json_decode($params->get('exclude_tables'));
+            $dont_copy_tables = json_decode($params->get('dont_copy_tables'));
             $database = json_decode($params->get('database'));
             $master_db = json_decode($params->get('master_db'));
             $ftp = json_decode($params->get('ftp'));
         }
 
         $this->assignRef('exclude_files', $exclude_files);
+        $this->assignRef('dont_copy_files', $dont_copy_files);
         $this->assignRef('exclude_tables', $exclude_tables);
+        $this->assignRef('dont_copy_tables', $dont_copy_tables);
         $this->assignRef('database', $database);
         $this->assignRef('master_db', $master_db);
         $this->assignRef('ftp', $ftp);
