@@ -24,9 +24,9 @@ class WCPViewDifferences extends JView {
 	function display($tpl = null) {
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Differences') . ' ]</small></small>', 'generic.png');
         JToolBarHelper::custom('createPatch', 'new.png', 'new.png', 'Create Patch');
-        JToolBarHelper::custom('syncChild', 'apply.png', 'apply.png', 'Synchronize', '', false);
-        JToolBarHelper::custom('commit', 'save.png', 'save.png', 'Commit');
-        JToolBarHelper::custom('revertChild', 'restore.png', 'restore.png', 'Revert');
+        JToolBarHelper::custom('syncChild', 'sync.png', 'sync.png', 'Synchronize', '', false);
+        JToolBarHelper::custom('commit', 'commit.png', 'commit.png', 'Commit');
+        JToolBarHelper::custom('revertChild', 'revert.png', 'revert.png', 'Revert');
         JToolBarHelper::custom('refreshDiff', 'refresh.png', 'refresh.png', 'Refresh', '', false);
         JToolBarHelper::custom('cancel', 'back.png', 'back.png', 'Back', '', false);
         JToolBarHelper::help('screen.wcp.differences', true);
