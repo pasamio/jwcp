@@ -10,6 +10,7 @@ defined('_JEXEC') or die('Restricted access');
 
 $document =& JFactory::getDocument();
 $document->addStyleDeclaration('.icon-32-back {background-image:url(./components/com_wcp/images/back.png) !important;}');
+$document->addStyleDeclaration('.icon-32-help {background-image:url(./components/com_wcp/images/help.png) !important;}');
 ?>
 <form enctype="multipart/form-data" action="index.php" method="post" name="adminForm">
     <table class="adminform">

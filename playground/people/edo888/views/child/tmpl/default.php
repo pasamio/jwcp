@@ -12,6 +12,7 @@ $document =& JFactory::getDocument();
 $document->addStyleDeclaration('.icon-32-save {background-image:url(./components/com_wcp/images/add.png) !important;}');
 $document->addStyleDeclaration('.icon-32-apply {background-image:url(./components/com_wcp/images/commit.png) !important;}');
 $document->addStyleDeclaration('.icon-32-cancel {background-image:url(./components/com_wcp/images/delete.png) !important;}');
+$document->addStyleDeclaration('.icon-32-help {background-image:url(./components/com_wcp/images/help.png) !important;}');
 ?>
 <script type="text/javascript">
 function submitbutton(pressbutton) {

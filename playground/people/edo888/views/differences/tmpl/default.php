@@ -15,6 +15,7 @@ $document->addStyleDeclaration('.icon-32-commit {background-image:url(./componen
 $document->addStyleDeclaration('.icon-32-revert {background-image:url(./components/com_wcp/images/revert.png) !important;}');
 $document->addStyleDeclaration('.icon-32-refresh {background-image:url(./components/com_wcp/images/refresh.png) !important;}');
 $document->addStyleDeclaration('.icon-32-back {background-image:url(./components/com_wcp/images/back.png) !important;}');
+$document->addStyleDeclaration('.icon-32-help {background-image:url(./components/com_wcp/images/help.png) !important;}');
 ?>
 <form action="index.php" method="post" name="adminForm">
     <table>
