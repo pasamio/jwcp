@@ -7,6 +7,11 @@
 
 // no direct access
 defined('_JEXEC') or die('Restricted access');
+
+$document =& JFactory::getDocument();
+$document->addStyleDeclaration('.icon-32-save {background-image:url(./components/com_wcp/images/add.png) !important;}');
+$document->addStyleDeclaration('.icon-32-apply {background-image:url(./components/com_wcp/images/commit.png) !important;}');
+$document->addStyleDeclaration('.icon-32-cancel {background-image:url(./components/com_wcp/images/delete.png) !important;}');
 ?>
 <script type="text/javascript">
 function submitbutton(pressbutton) {
@@ -167,7 +172,7 @@ function addDoNotCopyTable() {
                         <?php echo JHTML::_('select.booleanlist', 'copy_files', 'class="inputbox"', ini_get('safe_mode') ? 0 : 1); ?>
                         <?php if(ini_get('safe_mode')): ?>
                         &nbsp;
-                        <span class="error hasTip" title="<?php echo JText::_('Warning'); ?>::<?php JText::printf('EXEC_TIME_WARNING', ini_get('max_execution_time')); ?>">
+                        <span class="error hasTip" title="<?php echo JText::_('Warning - PHP safe mode is on'); ?>::<?php JText::printf('EXEC_TIME_WARNING', ini_get('max_execution_time')); ?>">
                             <img src="<?php echo JURI::root(); ?>includes/js/ThemeOffice/warning.png" border="0"  alt="" />
                         </span>
                         <?php endif; ?>

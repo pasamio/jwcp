@@ -9,7 +9,11 @@
 defined('_JEXEC') or die('Restricted access');
 
 $document =& JFactory::getDocument();
-$document->addStyleDeclaration('.icon-32-download {background-image:url(./templates/khepri/images/toolbar/icon-32-download.png);}');
+$document->addStyleDeclaration('.icon-32-new {background-image:url(./components/com_wcp/images/add.png) !important;}');
+$document->addStyleDeclaration('.icon-32-apply {background-image:url(./components/com_wcp/images/apply.png) !important;}');
+$document->addStyleDeclaration('.icon-32-edit {background-image:url(./components/com_wcp/images/edit.png) !important;}');
+$document->addStyleDeclaration('.icon-32-delete {background-image:url(./components/com_wcp/images/delete.png) !important;}');
+$document->addStyleDeclaration('.icon-32-diff {background-image:url(./components/com_wcp/images/diff.png) !important;}');
 ?>
 <form action="index.php" method="post" name="adminForm">
     <table class="adminlist">

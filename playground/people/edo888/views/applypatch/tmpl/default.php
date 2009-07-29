@@ -7,6 +7,9 @@
 
 // no direct access
 defined('_JEXEC') or die('Restricted access');
+
+$document =& JFactory::getDocument();
+$document->addStyleDeclaration('.icon-32-back {background-image:url(./components/com_wcp/images/back.png) !important;}');
 ?>
 <form enctype="multipart/form-data" action="index.php" method="post" name="adminForm">
     <table class="adminform">

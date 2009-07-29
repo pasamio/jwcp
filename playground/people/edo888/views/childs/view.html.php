@@ -31,9 +31,9 @@ class WCPViewChilds extends JView {
         JToolBarHelper::editList();
         JToolBarHelper::deleteList();
         if(!WCPHelper::isMaster())
-            JToolBarHelper::custom('diff', 'preview.png', 'preview.png', 'Differences', '', false);
+            JToolBarHelper::custom('diff', 'diff.png', 'diff.png', 'Differences', '', false);
         if(WCPHelper::isMaster())
-            JToolBarHelper::custom('applyPatch', 'download.png', 'download.png', 'Apply Patch', '', false);
+            JToolBarHelper::custom('applyPatch', 'apply.png', 'apply.png', 'Apply Patch', '', false);
         JToolBarHelper::help('screen.wcp', true);
 
         $filter_order     = $mainframe->getUserStateFromRequest($option.'.filter_order',     'filter_order',     'w.id', 'cmd');

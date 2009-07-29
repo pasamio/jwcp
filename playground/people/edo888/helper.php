@@ -49,7 +49,7 @@ class WCPHelper {
     function setInternalTime($internal_time = null) {
         if($internal_time == null)
             $internal_time = strtotime(JRequest::getVar('internal_time', date('Y-m-d H:i:s', WCPHelper::getInternalTime()), 'POST'));
-        setcookie('internal_time', $internal_time, time() + 36000);
+        setcookie('internal_time', $internal_time, time() + 36000, '/');
     }
 
     /**
@@ -279,6 +279,9 @@ class WCPHelper {
             foreach($dont_copy_files as $i => $dont_copy_file) {
                 $dont_copy_files[$i] = str_replace('./', JPATH_ROOT . DS, $dont_copy_file);
                 $dont_copy_files[$i] = str_replace('/', DS, $dont_copy_files[$i]);
+
+                if(is_dir(JPATH_ROOT.DS.$dont_copy_file))
+                    JFolder::create(JPATH_ROOT.DS.JRequest::getVar('path').DS.$dont_copy_file);
             }
 
             $master_files = JFolderWCP::files(JPATH_ROOT, array_merge($dont_copy_files, array('.svn', 'CVS')));
@@ -380,6 +383,8 @@ class WCPHelper {
 
         // Get the config registry in PHP class format and write it to configuation.php
         JFile::write($fname, $config->toString('PHP', 'config', array('class' => 'JConfig')));
+
+        self::setInternalTime(time());
 
         return true;
     }
