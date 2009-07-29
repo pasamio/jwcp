@@ -24,7 +24,7 @@ function submitbutton(pressbutton) {
     }
 }
 
-function addExcludeFile(anchor) {
+function addExcludeFile() {
 	var n = document.getElementsByName('exclude_files[]').length + 1;
 	var a = document.getElementById('exclude_files_add');
 
@@ -33,6 +33,27 @@ function addExcludeFile(anchor) {
     newEntry.setProperty('type', 'text');
     newEntry.setProperty('name', 'exclude_files[]');
     newEntry.setProperty('id', 'exclude_files_' + n);
+    newEntry.setProperty('size', '60');
+    newEntry.setProperty('style', 'margin-bottom:2px;');
+
+    var lineBreak = document.createElement('br');
+    var spacer = document.createElement('span');
+    spacer.innerHTML = '&nbsp;';
+
+    lineBreak.inject(a, 'before');
+    newEntry.inject(a, 'before');
+    spacer.inject(a, 'before');
+}
+
+function addDoNotCopyFile() {
+    var n = document.getElementsByName('dont_copy_files[]').length + 1;
+    var a = document.getElementById('dont_copy_files_add');
+
+    var newEntry = document.createElement('input');
+    newEntry.setProperty('class', 'inputbox');
+    newEntry.setProperty('type', 'text');
+    newEntry.setProperty('name', 'dont_copy_files[]');
+    newEntry.setProperty('id', 'dont_copy_files_' + n);
     newEntry.setProperty('size', '60');
     newEntry.setProperty('style', 'margin-bottom:2px;');
 
@@ -54,6 +75,27 @@ function addExcludeTable() {
     newEntry.setProperty('type', 'text');
     newEntry.setProperty('name', 'exclude_tables[]');
     newEntry.setProperty('id', 'exclude_tables_' + n);
+    newEntry.setProperty('size', '60');
+    newEntry.setProperty('style', 'margin-bottom:2px;');
+
+    var lineBreak = document.createElement('br');
+    var spacer = document.createElement('span');
+    spacer.innerHTML = '&nbsp;';
+
+    lineBreak.inject(a, 'before');
+    newEntry.inject(a, 'before');
+    spacer.inject(a, 'before');
+}
+
+function addDoNotCopyTable() {
+    var n = document.getElementsByName('dont_copy_tables[]').length + 1;
+    var a = document.getElementById('dont_copy_tables_add');
+
+    var newEntry = document.createElement('input');
+    newEntry.setProperty('class', 'inputbox');
+    newEntry.setProperty('type', 'text');
+    newEntry.setProperty('name', 'dont_copy_tables[]');
+    newEntry.setProperty('id', 'dont_copy_tables_' + n);
     newEntry.setProperty('size', '60');
     newEntry.setProperty('style', 'margin-bottom:2px;');
 
@@ -104,6 +146,34 @@ function addExcludeTable() {
                         <b><?php echo $this->secret; ?></b>
                     </td>
                 </tr>
+                <?php if(JRequest::getVar('task') == 'add'): ?>
+                <tr>
+                    <td width="200" class="key">
+                        <label for="name">
+                            <?php echo JText::_('Copy Database'); ?>
+                        </label>
+                    </td>
+                    <td>
+                        <?php echo JHTML::_('select.booleanlist', 'copy_db', 'class="inputbox"', 1); ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="200" class="key">
+                        <label for="name">
+                            <?php echo JText::_('Copy Files'); ?>
+                        </label>
+                    </td>
+                    <td>
+                        <?php echo JHTML::_('select.booleanlist', 'copy_files', 'class="inputbox"', ini_get('safe_mode') ? 0 : 1); ?>
+                        <?php if(ini_get('safe_mode')): ?>
+                        &nbsp;
+                        <span class="error hasTip" title="<?php echo JText::_('Warning'); ?>::<?php JText::printf('EXEC_TIME_WARNING', ini_get('max_execution_time')); ?>">
+                            <img src="<?php echo JURI::root(); ?>includes/js/ThemeOffice/warning.png" border="0"  alt="" />
+                        </span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endif; ?>
                 </table>
             </fieldset>
 
@@ -310,6 +380,28 @@ function addExcludeTable() {
             </fieldset>
 
             <fieldset class="adminform">
+                <legend><?php echo JText::_('Do Not Copy Files'); ?></legend>
+
+                <table class="admintable">
+                <tr>
+                    <td width="200" class="key" valign="top">
+                        <label for="dont_copy_files_1">
+                            <?php echo JText::_('Path'); ?>
+                        </label>
+                    </td>
+                    <td>
+                        <?php for($i = 0, $n = count($this->dont_copy_files); $i < $n; $i++): ?>
+                        <input class="inputbox" type="text" name="dont_copy_files[]" id="dont_copy_files_<?php echo $i + 1; ?>" size="60" style="margin-bottom:2px;" value="<?php echo $this->dont_copy_files[$i]; ?>" />
+                        <?php if($i + 1 < $n): ?><br />
+                        <?php else: ?><a href="javascript:addDoNotCopyFile();" id="dont_copy_files_add"><?php echo JText::_('Add row'); ?></a>
+                        <?php endif; ?>
+                        <?php endfor; ?>
+                    </td>
+                </tr>
+                </table>
+            </fieldset>
+
+            <fieldset class="adminform">
                 <legend><?php echo JText::_('Exclude Tables'); ?></legend>
 
                 <table class="admintable">
@@ -324,6 +416,28 @@ function addExcludeTable() {
                         <input class="inputbox" type="text" name="exclude_tables[]" id="exclude_tables_<?php echo $i + 1; ?>" size="60" style="margin-bottom:2px;" value="<?php echo $this->exclude_tables[$i]; ?>" />
                         <?php if($i + 1 < $n): ?><br />
                         <?php else: ?><a href="javascript:addExcludeTable();" id="exclude_tables_add"><?php echo JText::_('Add row'); ?></a>
+                        <?php endif; ?>
+                        <?php endfor; ?>
+                    </td>
+                </tr>
+                </table>
+            </fieldset>
+
+            <fieldset class="adminform">
+                <legend><?php echo JText::_('Do Not Copy Tables'); ?></legend>
+
+                <table class="admintable">
+                <tr>
+                    <td width="200" class="key" valign="top">
+                        <label for="dont_copy_tables_1">
+                            <?php echo JText::_('Table Name'); ?>
+                        </label>
+                    </td>
+                    <td>
+                        <?php for($i = 0, $n = count($this->dont_copy_tables); $i < $n; $i++): ?>
+                        <input class="inputbox" type="text" name="dont_copy_tables[]" id="dont_copy_tables_<?php echo $i + 1; ?>" size="60" style="margin-bottom:2px;" value="<?php echo $this->dont_copy_tables[$i]; ?>" />
+                        <?php if($i + 1 < $n): ?><br />
+                        <?php else: ?><a href="javascript:addDoNotCopyTable();" id="dont_copy_tables_add"><?php echo JText::_('Add row'); ?></a>
                         <?php endif; ?>
                         <?php endfor; ?>
                     </td>

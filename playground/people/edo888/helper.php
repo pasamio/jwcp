@@ -117,7 +117,7 @@ class WCPHelper {
         $child = $db->loadObject();
 
         $params = new JParameter($child->params);
-        $exclude_files = json_decode($params->get('exclude_files'));
+        $exclude_files = array_merge(json_decode($params->get('exclude_files')), json_decode($params->get('dont_copy_files')));
         $exclude_files[] = $child->path;
         foreach($exclude_files as $i => $exclude_file) {
             $exclude_files[$i] = str_replace('./', $path . DS, $exclude_file);
@@ -141,7 +141,7 @@ class WCPHelper {
         $params = $db->loadResult();
         $params = new JParameter($params);
 
-        return json_decode($params->get('exclude_tables'));
+        return array_merge(json_decode($params->get('exclude_tables')), json_decode($params->get('dont_copy_tables')));
     }
 
     /**
@@ -152,7 +152,7 @@ class WCPHelper {
      */
     function createChild() {
         // Try to set the script execution time to unlimited, if php is in safe mode there is no workaround
-        set_time_limit(0);
+        @set_time_limit(0);
 
         global $mainframe;
         $master_db =& JFactory::getDBO();
@@ -173,7 +173,9 @@ class WCPHelper {
 
         $params = new JParameter('');
         $params->set('exclude_files', json_encode(array_values(array_filter(JRequest::getVar('exclude_files'), 'strlen'))));
+        $params->set('dont_copy_files', json_encode(array_values(array_filter(JRequest::getVar('dont_copy_files'), 'strlen'))));
         $params->set('exclude_tables', json_encode(array_values(array_filter(JRequest::getVar('exclude_tables'), 'strlen'))));
+        $params->set('dont_copy_tables', json_encode(array_values(array_filter(JRequest::getVar('dont_copy_tables'), 'strlen'))));
 
         $database = new JObject;
         $database->set('host', JRequest::getVar('host'));
@@ -224,59 +226,72 @@ class WCPHelper {
         $master_tables = $master_db->loadResultArray();
         // Debug: echo '<pre>', print_r($master_tables, true), '</pre>';
 
-        // Copy all tables w/ data to the child
-        foreach($master_tables as $master_table) {
-            $master_table_ddl = array_pop($master_db->getTableCreate($master_table));
-            $child_table = str_replace($master_db->_table_prefix, '#__', $master_table);
-            $child_table_ddl = preg_replace('/'.$master_table.'/', $child_table, $master_table_ddl, 1);
-            // Debug: echo '<pre>', $child_table_ddl, '</pre>';
+        if(JRequest::getVar('copy_db') == 1) {
+            // Copy all tables w/ data to the child
+            foreach($master_tables as $master_table) {
+                $master_table_ddl = array_pop($master_db->getTableCreate($master_table));
+                $child_table = str_replace($master_db->_table_prefix, '#__', $master_table);
+                $child_table_ddl = preg_replace('/'.$master_table.'/', $child_table, $master_table_ddl, 1);
+                // Debug: echo '<pre>', $child_table_ddl, '</pre>';
 
-            $child_db->setQuery($child_table_ddl);
-            $child_db->query();
+                $child_db->setQuery($child_table_ddl);
+                $child_db->query();
 
-            if(!in_array($child_table, array('#__core_log_items', '#__core_log_searches', '#__session', '#__stats_agents'))) {
-                $master_db->setQuery('select * from ' . $master_table);
-                $master_rows = $master_db->loadObjectList();
-                foreach($master_rows as $master_row)
-                    $child_db->insertObject($child_table, $master_row);
+                if(!in_array($child_table, json_decode($params->get('dont_copy_tables')))) {
+                    $master_db->setQuery('select * from ' . $master_table);
+                    $master_rows = $master_db->loadObjectList();
+                    foreach($master_rows as $master_row)
+                        $child_db->insertObject($child_table, $master_row);
 
-                // Create triggers for child table if number of primary key fields is one
-                $child_table = str_replace('#__', $child_db->_table_prefix, $child_table);
-                if(self::getPrimaryKeyCount($child_db, $child_table) == 1) {
-                    $key = self::getPrimaryKeyField($child_db, $child_table);
-                    $child_db->setQuery("create trigger on_insert_$child_table after insert on $child_table for each row " .
-                        "replace into #__log_queries (action, table_name, table_key, value) values('insert', '$child_table', '$key', new.$key)");
-                    $child_db->query();
+                    // Create triggers for child table if number of primary key fields is one
+                    $child_table = str_replace('#__', $child_db->_table_prefix, $child_table);
+                    if(self::getPrimaryKeyCount($child_db, $child_table) == 1) {
+                        $key = self::getPrimaryKeyField($child_db, $child_table);
+                        $child_db->setQuery("create trigger on_insert_$child_table after insert on $child_table for each row " .
+                            "replace into #__log_queries (action, table_name, table_key, value) values('insert', '$child_table', '$key', new.$key)");
+                        $child_db->query();
 
-                    $child_db->setQuery("create trigger on_update_$child_table after update on $child_table for each row " .
-                        "replace into #__log_queries (action, table_name, table_key, value) values('update', '$child_table', '$key', old.$key)");
-                    $child_db->query();
+                        $child_db->setQuery("create trigger on_update_$child_table after update on $child_table for each row " .
+                            "replace into #__log_queries (action, table_name, table_key, value) values('update', '$child_table', '$key', old.$key)");
+                        $child_db->query();
 
-                    $child_db->setQuery("create trigger on_delete_$child_table after delete on $child_table for each row " .
-                        "replace into #__log_queries (action, table_name, table_key, value) values('delete', '$child_table', '$key', old.$key)");
-                    $child_db->query();
-                }
+                        $child_db->setQuery("create trigger on_delete_$child_table after delete on $child_table for each row " .
+                            "replace into #__log_queries (action, table_name, table_key, value) values('delete', '$child_table', '$key', old.$key)");
+                        $child_db->query();
+                    }
 
-                // Increase child table auto_increment values
-                $child_db->setQuery("select auto_increment from information_schema.tables where table_schema = database() and table_name = '$child_table'");
-                $table_auto_increment = $child_db->loadResult();
-                if($table_auto_increment != '') {
-                    $table_auto_increment *= 10; // TODO: Select different multiplier depending on $table_auto_increment value
-                    $child_db->setQuery("alter table $child_table auto_increment = $table_auto_increment");
-                    $child_db->query();
+                    // Increase child table auto_increment values
+                    $child_db->setQuery("select auto_increment from information_schema.tables where table_schema = database() and table_name = '$child_table'");
+                    $table_auto_increment = $child_db->loadResult();
+                    if($table_auto_increment != '') {
+                        $table_auto_increment *= 10; // TODO: Select different multiplier depending on $table_auto_increment value
+                        $child_db->setQuery("alter table $child_table auto_increment = $table_auto_increment");
+                        $child_db->query();
+                    }
                 }
             }
+        } else {
+            JError::raiseNotice(0, JText::_('You still need to copy all the tables to the child database manually.'));
         }
 
-        // TODO: Don't copy exclude files
-        $master_files = JFolderWCP::files(JPATH_ROOT);
-        // Debug: echo '<pre>', print_r($master_files, true), '</pre>';
+        if(JRequest::getVar('copy_files') == 1) {
+            $dont_copy_files = json_decode($params->get('dont_copy_files'));
+            foreach($dont_copy_files as $i => $dont_copy_file) {
+                $dont_copy_files[$i] = str_replace('./', JPATH_ROOT . DS, $dont_copy_file);
+                $dont_copy_files[$i] = str_replace('/', DS, $dont_copy_files[$i]);
+            }
 
-        foreach($master_files as $master_file) {
-            $dest = str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_file);
-            if(!is_dir(dirname($dest)))
-                JFolder::create(dirname($dest));
-            JFile::copy($master_file, $dest);
+            $master_files = JFolderWCP::files(JPATH_ROOT, array_merge($dont_copy_files, array('.svn', 'CVS')));
+            // Debug: echo '<pre>', print_r($master_files, true), '</pre>';
+
+            foreach($master_files as $master_file) {
+                $dest = str_replace(JPATH_ROOT, JPATH_ROOT.DS.JRequest::getVar('path'), $master_file);
+                if(!is_dir(dirname($dest)))
+                    JFolder::create(dirname($dest));
+                JFile::copy($master_file, $dest);
+            }
+        } else {
+            JError::raiseNotice(0, JText::_('You still need to copy all the files to the child directory manually.'));
         }
 
         // Configure the child
@@ -380,8 +395,10 @@ class WCPHelper {
         $master_db =& JFactory::getDBO();
         $child_db = new JDatabaseMySQL(array('host' => JRequest::getVar('host'), 'user' => JRequest::getVar('user'), 'password' => JRequest::getVar('password'), 'database' => JRequest::getVar('database'), 'prefix' => JRequest::getVar('prefix')));
 
-        if(!$child_db->connected())
+        if(!$child_db->connected()) {
+            JError::raiseError(0, JText::_('Connot connect to the child for re-configuring it'));
             return false;
+        }
 
         // Update child settings in jos_wcp and #__wcp
         $wcp_table = new TableWCP($master_db);
@@ -392,7 +409,9 @@ class WCPHelper {
 
         $params = new JParameter('');
         $params->set('exclude_files', json_encode(array_values(array_filter(JRequest::getVar('exclude_files'), 'strlen'))));
+        $params->set('dont_copy_files', json_encode(array_values(array_filter(JRequest::getVar('dont_copy_files'), 'strlen'))));
         $params->set('exclude_tables', json_encode(array_values(array_filter(JRequest::getVar('exclude_tables'), 'strlen'))));
+        $params->set('dont_copy_tables', json_encode(array_values(array_filter(JRequest::getVar('dont_copy_tables'), 'strlen'))));
 
         $database = new JObject;
         $database->set('host', JRequest::getVar('host'));
@@ -463,7 +482,7 @@ class WCPHelper {
      */
     function removeChild() {
         // Try to set the script execution time to unlimited, if php is in safe mode there is no workaround
-        set_time_limit(0);
+        @set_time_limit(0);
 
         $db =& JFactory::getDBO();
         $wcp_table = new TableWCP($db);
