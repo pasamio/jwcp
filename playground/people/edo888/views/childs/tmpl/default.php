@@ -14,6 +14,7 @@ $document->addStyleDeclaration('.icon-32-apply {background-image:url(./component
 $document->addStyleDeclaration('.icon-32-edit {background-image:url(./components/com_wcp/images/edit.png) !important;}');
 $document->addStyleDeclaration('.icon-32-delete {background-image:url(./components/com_wcp/images/delete.png) !important;}');
 $document->addStyleDeclaration('.icon-32-diff {background-image:url(./components/com_wcp/images/diff.png) !important;}');
+$document->addStyleDeclaration('.icon-32-help {background-image:url(./components/com_wcp/images/help.png) !important;}');
 ?>
 <form action="index.php" method="post" name="adminForm">
     <table class="adminlist">
