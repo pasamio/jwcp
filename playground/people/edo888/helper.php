@@ -1246,7 +1246,8 @@ class WCPHelper {
                     $db->updateObject($child_table, $master_row, $key, $master_row->$key);
 
                     // delete triggered query
-                    $db->setQuery("delete from #__log_queries where table_name = '$child_table' and value = '" . $master_row->$key . "'");
+                    $internal_timer = date('Y-m-d H:i:s', self::getInternalTime());
+                    $db->setQuery("delete from #__log_queries where table_name = '$child_table' and value = '" . $master_row->$key . "' and date > '$internal_timer'");
                     $db->query();
                 }
 
