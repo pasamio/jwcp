@@ -9,7 +9,7 @@
     <copyright>Copyright (C) 2009 Edvard Ananyan. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
     <version>1.5.$Rev$</version>
-    <description>This component manages working copies of the live site</description>
+    <description>WCP_DESCRIPTION</description>
 
     <installfile></installfile>
     <uninstallfile></uninstallfile>
