@@ -37,6 +37,7 @@ class WCPViewChilds extends JView {
         JToolBarHelper::editList();
         JToolBarHelper::deleteList();
         JToolBarHelper::custom('applyPatch', 'apply.png', 'apply.png', 'Apply Patch', '', false);
+        JToolBarHelper::custom('merge', 'merge.png', 'merge.png', 'Merge');
         if(!WCPHelper::isMaster())
             JToolBarHelper::custom('diff', 'diff.png', 'diff.png', 'Differences', '', false);
         JToolBarHelper::help('screen.wcp', true);

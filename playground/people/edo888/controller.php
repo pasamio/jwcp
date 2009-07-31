@@ -41,6 +41,7 @@ class WCPController extends JController {
         $this->registerTask('createPatch', 'createPatch');
         $this->registerTask('applyPatch', 'applyPatch');
         $this->registerTask('commit', 'commit');
+        $this->registerTask('merge', 'merge');
         $this->registerTask('revertChild', 'revertChild');
         $this->registerTask('syncChild', 'syncChild');
         // TODO: Remove this task
@@ -125,6 +126,11 @@ class WCPController extends JController {
         $cache->clean('com_wcp', 'group');
 
         $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Commit completed'));
+    }
+
+    function merge() {
+        WCPHelper::merge();
+        $this->setRedirect('index.php?option=com_wcp', JText::_('Childs merged successfully'));
     }
 
     function revertChild() {
