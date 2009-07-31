@@ -1003,6 +1003,18 @@ class WCPHelper {
     }
 
     /**
+     * Merge childs
+     *
+     * @access public
+     * @return boolean
+     */
+    function merge() {
+        // TODO: Write merge function
+
+        return true;
+    }
+
+    /**
      * Revert the child
      *
      * @access public
