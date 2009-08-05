@@ -130,7 +130,7 @@ class WCPController extends JController {
 
     function merge() {
         WCPHelper::merge();
-        $this->setRedirect('index.php?option=com_wcp', JText::_('Childs merged successfully'));
+        //$this->setRedirect('index.php?option=com_wcp', JText::_('Childs merged successfully'));
     }
 
     function revertChild() {

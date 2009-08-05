@@ -298,6 +298,9 @@ class WCPHelper {
                 if(!is_dir(dirname($dest)))
                     JFolder::create(dirname($dest));
                 JFile::copy($master_file, $dest);
+
+                // Set last modified date of child file to the same as in master
+                touch($dest, filemtime($master_file));
             }
         } else {
             JError::raiseNotice(0, JText::_('You still need to copy all the files to the child directory manually.'));
@@ -998,6 +1001,7 @@ class WCPHelper {
         }
 
         // TODO: Move internal timer forward
+        // TODO: Use touch to change last modified date of files
 
         return true;
     }
@@ -1009,7 +1013,57 @@ class WCPHelper {
      * @return boolean
      */
     function merge() {
-        // TODO: Write merge function
+        // Try to set the script execution time to unlimited, if php is in safe mode there is no workaround
+        @set_time_limit(0);
+
+        $cid = JRequest::getVar('cid', array(), 'POST', 'array');
+        if(count($cid) != 2) {
+            JError::raiseWarning(0, JText::_('Select 2 childs at a time'));
+            return false;
+        }
+
+        $db =& JFactory::getDBO();
+
+        // Merge database
+
+        // Merge tables
+
+        // Merge files
+        $db->setQuery('select path from #__wcp where id = ' . (int) $cid[0]);
+        $child1_path = $db->loadResult();
+
+        $db->setQuery('select path from #__wcp where id = ' . (int) $cid[1]);
+        $child2_path = $db->loadResult();
+
+        // Get all files from child 2 and if newer apply to child 1
+        $db->setQuery('select params from #__wcp where id = ' . (int) $cid[1]);
+        $child2_params = $db->loadResult();
+
+        $params = new JParameter($child2_params);
+        $exclude_files = array_merge(json_decode($params->get('exclude_files')), json_decode($params->get('dont_copy_files')));
+        foreach($exclude_files as $i => $exclude_file) {
+            $exclude_files[$i] = str_replace('./', realpath(JPATH_ROOT . DS . $child2_path) . DS, $exclude_file);
+            $exclude_files[$i] = str_replace('/', DS, $exclude_files[$i]);
+        }
+
+        // Debug: echo '<pre>', print_r($exclude_files, true), '</pre>';
+
+        $child2_files = JFolderWCP::files(realpath(JPATH_ROOT . DS . $child2_path), array_merge($exclude_files, array('.svn', 'CVS')));
+
+        // Update files on child 1 if newer
+        foreach($child2_files as $child2_file) {
+            $child1_file = str_replace(realpath(JPATH_ROOT . DS . $child2_path), realpath(JPATH_ROOT . DS . $child1_path), $child2_file);
+            if(!file_exists($child1_file) or filemtime($child2_file) > filemtime($child1_file)) {
+                // Create appropriate directories and copy file to child 1
+                if(!is_dir(dirname($child1_file)))
+                    JFolder::create(dirname($child1_file));
+
+                JFile::copy($child2_file, $child1_file);
+                touch($child1_file, filemtime($child2_file));
+            }
+        }
+
+        // Debug: echo '<pre>', print_r($child2_files, true), '</pre>';
 
         return true;
     }
@@ -1045,7 +1099,7 @@ class WCPHelper {
         $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
         foreach($files as $i => $file)
             if(!JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file))
-                JError::raiseError(0, "Cannot revert " . $master_root.DS.$file . ", original file doesn't exist");
+                JError::raiseNotice(0, "Cannot revert " . $master_root.DS.$file . ", original file doesn't exist");
 
         // Revert database
         foreach($tables as $table) {
@@ -1057,7 +1111,7 @@ class WCPHelper {
                     break;
                 case 'update':
                     if(!$master_db->connected())
-                        JError::raiseError(0, "Cannot connect to master database to revert table $table");
+                        JError::raiseNotice(0, "Cannot connect to master database to revert table $table");
                     else {
                         $db->setQuery('truncate table ' . $table);
                         $db->query();
@@ -1069,7 +1123,7 @@ class WCPHelper {
                     break;
                 case 'delete':
                     if(!$master_db->connected())
-                        JError::raiseError(0, "Cannot connect to master database to revert table $table");
+                        JError::raiseNotice(0, "Cannot connect to master database to revert table $table");
                     else {
                         list($table_ddl) = array_values($master_db->getTableCreate($table));
                         $table_ddl = preg_replace('/'.str_replace('#__', $master_db->_table_prefix, $table).'/', $table, $table_ddl, 1);
@@ -1103,7 +1157,7 @@ class WCPHelper {
                 case 'update':
                 case 'delete':
                     if(!$master_db->connected())
-                        JError::raiseError(0, "Cannot connect to master database to revert row " . $change->table_name . "." . $change->table_key . "=" . $change->value);
+                        JError::raiseNotice(0, "Cannot connect to master database to revert row " . $change->table_name . "." . $change->table_key . "=" . $change->value);
                     else {
                         $master_db->setQuery("select * from " . str_replace($db->_table_prefix, '#__', $change->table_name) . " where $change->table_key = '$change->value'");
                         $original = $master_db->loadAssoc();
@@ -1135,6 +1189,8 @@ class WCPHelper {
             }
         }
 
+        // TODO: Use touch to change last modified date of files
+
         return true;
     }
 
@@ -1150,7 +1206,7 @@ class WCPHelper {
         $master_db =& self::getMasterDBO();
 
         if(!$master_db->connected()) {
-            JError::raiseError(0, JText::_('Cannot connect to master databasa for synchronizing the child'));
+            JError::raiseWarning(0, JText::_('Cannot connect to master databasa for synchronizing the child'));
             return false;
         }
 
@@ -1275,6 +1331,8 @@ class WCPHelper {
             }
 
         }
+
+        // TODO: Use touch to change last modified date of files
 
         // Move internal timer forward
         self::setInternalTime(time());

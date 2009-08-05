@@ -30,6 +30,8 @@ class WCPViewChild extends JView {
 	function display($tpl = null) {
 	    JHTML::_('behavior.tooltip');
 
+	    $db =& JFactory::getDBO();
+
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . (JRequest::getVar('task', 'edit') == 'edit' ? JText::_('Edit Child') : JText::_('New Child')) . ' ]</small></small>', 'generic.png');
         JToolBarHelper::save();
         JToolBarHelper::apply();
@@ -51,7 +53,6 @@ class WCPViewChild extends JView {
 
         // Get child params
         if(JRequest::getVar('task', 'edit') == 'add') {
-            // TODO: define child defaults
             $child->path = './child';
 
             $exclude_files = array();
@@ -77,6 +78,10 @@ class WCPViewChild extends JView {
             $dont_copy_files[] = './installation';
             $dont_copy_files[] = './administrator/backups';
             $dont_copy_files[] = './administrator/cache';
+
+            // Don't copy other childs
+            $db->setQuery('select path from #__wcp');
+            $dont_copy_files = array_merge($dont_copy_files, $db->loadResultArray());
 
             $exclude_tables = array();
             $exclude_tables[] = '#__core_acl_aro';
