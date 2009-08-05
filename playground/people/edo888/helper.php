@@ -1024,9 +1024,37 @@ class WCPHelper {
 
         $db =& JFactory::getDBO();
 
-        // TODO: Merge database
+        // Get connection to child site databases
+        $db->setQuery('select params from #__wcp where id = ' . (int) $cid[0]);
+        $child1_params = $db->loadResult();
+        $db->setQuery('select params from #__wcp where id = ' . (int) $cid[1]);
+        $child2_params = $db->loadResult();
+        $params = new JParameter($child1_params);
+        $child1_db = json_decode($params->get('database'));
+        $child1_db = new JDatabaseMySQL(array('host' => $child1_db->host, 'user' => $child1_db->user, 'password' => $child1_db->password, 'database' => $child1_db->database, 'prefix' => $child1_db->prefix));
+        $params = new JParameter($child2_params);
+        $child2_db = json_decode($params->get('database'));
+        $child2_db = new JDatabaseMySQL(array('host' => $child2_db->host, 'user' => $child2_db->user, 'password' => $child2_db->password, 'database' => $child2_db->database, 'prefix' => $child2_db->prefix));
 
-        // TODO: Merge tables
+        if($child1_db->connected() and $child2_db->connected()) {
+            // Merge table rows
+            // Get all the changes made on the child 2
+            $child2_db->setQuery('select * from #__log_queries');
+            $changes = $child2_db->loadObjectList();
+            foreach($changes as $change) {
+                // If the change on child 2 is made after the same change on the child 1 or there is no
+                // such change on child 1, commit the change to child 1
+                $child1_db->setQuery("select date from #__log_queries where table_name = '" . str_replace($child2_db->_table_prefix, $child1_db->_table_prefix, $change->table_name) . "' and value = '$change->value'");
+                $date = $child1_db->loadResult();
+                if(empty($date) or strtotime($change->date) > strtotime($date)) {
+                    // TODO: Commit the change to child 1
+                }
+            }
+
+            // TODO: Merge database
+        } else {
+            JError::raiseWarning(0, JText::_('Cannot connect to database of one of the selected child sites'));
+        }
 
         // Merge files
         $db->setQuery('select path from #__wcp where id = ' . (int) $cid[0]);
@@ -1035,10 +1063,7 @@ class WCPHelper {
         $db->setQuery('select path from #__wcp where id = ' . (int) $cid[1]);
         $child2_path = $db->loadResult();
 
-        // Get all files from child 2 and if newer apply to child 1
-        $db->setQuery('select params from #__wcp where id = ' . (int) $cid[1]);
-        $child2_params = $db->loadResult();
-
+        // Get all files from child 2 not in exclude list and if newer apply to child 1
         $params = new JParameter($child2_params);
         $exclude_files = array_merge(json_decode($params->get('exclude_files')), json_decode($params->get('dont_copy_files')));
         foreach($exclude_files as $i => $exclude_file) {
