@@ -1024,9 +1024,9 @@ class WCPHelper {
 
         $db =& JFactory::getDBO();
 
-        // Merge database
+        // TODO: Merge database
 
-        // Merge tables
+        // TODO: Merge tables
 
         // Merge files
         $db->setQuery('select path from #__wcp where id = ' . (int) $cid[0]);
@@ -1098,8 +1098,10 @@ class WCPHelper {
         $path = $db->loadResult();
         $master_root = JPath::clean(str_replace(str_replace(array('./', '/'), DS, $path), '', JPATH_ROOT));
         foreach($files as $i => $file)
-            if(!JFile::copy($master_root.DS.$file, JPATH_ROOT.DS.$file))
-                JError::raiseNotice(0, "Cannot revert " . $master_root.DS.$file . ", original file doesn't exist");
+            if(!JFile::copy($master_root . DS . $file, JPATH_ROOT . DS . $file))
+                JError::raiseNotice(0, "Cannot revert " . $master_root . DS . $file . ", original file doesn't exist");
+            else
+                touch(JPATH_ROOT . DS . $file, filemtime($master_root . DS . $file));
 
         // Revert database
         foreach($tables as $table) {
@@ -1188,8 +1190,6 @@ class WCPHelper {
                     break;
             }
         }
-
-        // TODO: Use touch to change last modified date of files
 
         return true;
     }
