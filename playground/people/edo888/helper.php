@@ -1047,7 +1047,24 @@ class WCPHelper {
                 $child1_db->setQuery("select date from #__log_queries where table_name = '" . str_replace($child2_db->_table_prefix, $child1_db->_table_prefix, $change->table_name) . "' and value = '$change->value'");
                 $date = $child1_db->loadResult();
                 if(empty($date) or strtotime($change->date) > strtotime($date)) {
-                    // TODO: Commit the change to child 1
+                    // Commit the change to child 1
+                    $change->table_name = str_replace($child2_db->_table_prefix, '#__', $change->table_name);
+                    switch($change->action) {
+                        case 'insert':
+                        case 'update':
+                            $child2_db->setQuery("select * from $change->table_name where $change->table_key = '$change->value'");
+                            $row = $child2_db->loadObject();
+                            $child1_db->updateObject($change->table_name, $row, $change->table_key);
+                            if($child1_db->getAffectedRows() == 0)
+                                $child1_db->insertObject($change->table_name, $row, $change->table_key);
+                            break;
+                        case 'delete':
+                            $child1_db->setQuery("delete from $change->table_name where $change->table_key = '$change->value'");
+                            $child1_db->query();
+                            break;
+                    }
+                    // Debug: echo $change->table_name, '.', $change->table_key, '=', $change->value, '<br />';
+
                 }
             }
 
@@ -1342,7 +1359,7 @@ class WCPHelper {
                     $master_db->setQuery("select * from $master_table");
                 $master_rows = $master_db->loadObjectList();
                 foreach($master_rows as $master_row) {
-                    $db->updateObject($child_table, $master_row, $key, $master_row->$key);
+                    $db->updateObject($child_table, $master_row, $key);
 
                     // delete triggered query
                     $internal_timer = date('Y-m-d H:i:s', self::getInternalTime());
