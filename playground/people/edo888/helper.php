@@ -871,16 +871,18 @@ class WCPHelper {
         JArchive::extract($patch_src, $patch_dest);
 
         // Run queries from sql file
-        $db =& JFactory::getDBO();
         $sql_file = $patch_dest.DS.str_replace('.tar.gz', '.sql', $userfile['name']);
-        $sql = file($sql_file);
-        foreach($sql as $query) {
-            $db->setQuery($query);
-            $db->query();
-        }
+        if(file_exists($sql_file)) {
+            $db =& JFactory::getDBO();
+            $sql = file($sql_file);
+            foreach($sql as $query) {
+                $db->setQuery($query);
+                $db->query();
+            }
 
-        // Remove sql file
-        JFile::delete($sql_file);
+            // Remove sql file
+            JFile::delete($sql_file);
+        }
 
         // Replace files
         $files = JFolderWCP::files($patch_dest);
@@ -1029,15 +1031,17 @@ class WCPHelper {
         $child1_params = $db->loadResult();
         $db->setQuery('select params from #__wcp where id = ' . (int) $cid[1]);
         $child2_params = $db->loadResult();
+
         $params = new JParameter($child1_params);
         $child1_db = json_decode($params->get('database'));
         $child1_db = new JDatabaseMySQL(array('host' => $child1_db->host, 'user' => $child1_db->user, 'password' => $child1_db->password, 'database' => $child1_db->database, 'prefix' => $child1_db->prefix));
+
         $params = new JParameter($child2_params);
         $child2_db = json_decode($params->get('database'));
         $child2_db = new JDatabaseMySQL(array('host' => $child2_db->host, 'user' => $child2_db->user, 'password' => $child2_db->password, 'database' => $child2_db->database, 'prefix' => $child2_db->prefix));
 
         if($child1_db->connected() and $child2_db->connected()) {
-            // Merge table rows
+            # Merge table rows
             // Get all the changes made on the child 2
             $child2_db->setQuery('select * from #__log_queries');
             $changes = $child2_db->loadObjectList();
@@ -1059,8 +1063,9 @@ class WCPHelper {
                                 $child1_db->insertObject($change->table_name, $row, $change->table_key);
                             break;
                         case 'delete':
-                            $child1_db->setQuery("delete from $change->table_name where $change->table_key = '$change->value'");
-                            $child1_db->query();
+                            // Do nothing
+                            //$child1_db->setQuery("delete from $change->table_name where $change->table_key = '$change->value'");
+                            //$child1_db->query();
                             break;
                     }
                     // Debug: echo $change->table_name, '.', $change->table_key, '=', $change->value, '<br />';
@@ -1068,12 +1073,40 @@ class WCPHelper {
                 }
             }
 
-            // TODO: Merge database
+            # Merge database
+            // Get all tables from child1 and child2
+            $child1_db->setQuery("show tables like '" . $child1_db->_table_prefix . "%'");
+            $child1_tables = $child1_db->loadResultArray();
+            foreach($child1_tables as $i => $table)
+                $child1_tables[$i] = str_replace($child1_db->_table_prefix, '#__', $table);
+
+            $child2_db->setQuery("show tables like '" . $child2_db->_table_prefix . "%'");
+            $child2_tables = $child2_db->loadResultArray();
+            foreach($child2_tables as $i => $table)
+                $child2_tables[$i] = str_replace($child2_db->_table_prefix, '#__', $table);
+
+            // Copy proper tables from child 2 to child 1
+            $create_tables = array_diff($child2_tables, $child1_tables);
+            foreach($create_tables as $table) {
+                $table_ddl = end($child2_db->getTableCreate($table));
+                $table_ddl = preg_replace('/'.str_replace($child2_db->_table_prefix, '#__', $table).'/', $table, $table_ddl, 1);
+
+                // Create table
+                $child1_db->setQuery($table_ddl);
+                $child1_db->query();
+
+                // Add rows
+                $child2_db->setQuery("select * from $table");
+                $rows = $child2_db->loadObjectList();
+                foreach($rows as $row)
+                    $child1_db->insertObject($table, $row);
+            }
+
         } else {
-            JError::raiseWarning(0, JText::_('Cannot connect to database of one of the selected child sites'));
+            JError::raiseWarning(0, JText::_('Cannot connect to the child database'));
         }
 
-        // Merge files
+        # Merge files
         $db->setQuery('select path from #__wcp where id = ' . (int) $cid[0]);
         $child1_path = $db->loadResult();
 
@@ -1106,6 +1139,17 @@ class WCPHelper {
         }
 
         // Debug: echo '<pre>', print_r($child2_files, true), '</pre>';
+
+        // Change child 1 name
+        $db->setQuery('select name from #__wcp where id = ' . (int) $cid[0]);
+        $child1_name = $db->loadResult();
+        $db->setQuery('select name from #__wcp where id = ' . (int) $cid[1]);
+        $child2_name = $db->loadResult();
+
+        $wcp_table = new TableWCP($db);
+        $wcp_table->load((int) $cid[0]);
+        $wcp_table->name = $child1_name . ' merged w/ ' . $child2_name;
+        $wcp_table->store();
 
         return true;
     }
@@ -1382,17 +1426,6 @@ class WCPHelper {
         return true;
     }
 
-    /**
-     * Function for test purposes
-     * TODO: Remove this function
-     *
-     * @access public
-     * @return
-     */
-    function test() {
-        echo '<pre>', print_r(self::getExcludeFiles('C:\xampp\htdocs\joomla_dev\Joomla 1.5 Source'), true), '</pre>';
-        //echo '<pre>', print_r(JFolderWCP::files(JPATH_ROOT, array_merge(self::getExcludeFiles(), array('.svn', 'CVS'))), true), '</pre>';
-    }
 }
 
 /**
