@@ -44,8 +44,6 @@ class WCPController extends JController {
         $this->registerTask('merge', 'merge');
         $this->registerTask('revertChild', 'revertChild');
         $this->registerTask('syncChild', 'syncChild');
-        // TODO: Remove this task
-        $this->registerTask('test', 'test');
     }
 
 
@@ -130,7 +128,7 @@ class WCPController extends JController {
 
     function merge() {
         WCPHelper::merge();
-        //$this->setRedirect('index.php?option=com_wcp', JText::_('Childs merged successfully'));
+        $this->setRedirect('index.php?option=com_wcp', JText::_('Childs merged successfully'));
     }
 
     function revertChild() {
@@ -149,11 +147,6 @@ class WCPController extends JController {
         $cache->clean('com_wcp', 'group');
 
         $this->setRedirect('index.php?option=com_wcp&task=differences', JText::_('Synchronization proccess completed'));
-    }
-
-    // TODO: Remove this function
-    function test() {
-        WCPHelper::test();
     }
 
 }
