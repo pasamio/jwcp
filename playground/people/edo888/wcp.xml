@@ -84,6 +84,18 @@
             <filename>models/childs.php</filename>
             <filename>help/index.html</filename>
             <filename>help/en-GB/index.html</filename>
+            <filename>help/en-GB/screen.wcp.applypatch.html</filename>
+            <filename>help/en-GB/screen.wcp.differences.html</filename>
+            <filename>help/en-GB/screen.wcp.html</filename>
+            <filename>help/en-GB/screen.wcp.new.html</filename>
+            <filename>help/en-GB/working_copy_applypatch_toolbar.png</filename>
+            <filename>help/en-GB/working_copy_applypatch</filename>
+            <filename>help/en-GB/working_copy_differences_toolbar.png</filename>
+            <filename>help/en-GB/working_copy_differences.png</filename>
+            <filename>help/en-GB/working_copy_new_toolbar.png</filename>
+            <filename>help/en-GB/working_copy_new.png</filename>
+            <filename>help/en-GB/working_copy_toolbar.png</filename>
+            <filename>help/en-GB/working_copy.png</filename>
         </files>
 
         <languages folder="languages">
