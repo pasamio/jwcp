@@ -1408,6 +1408,10 @@ class WCPHelper {
                     $master_db->setQuery("select * from $master_table");
                 $master_rows = $master_db->loadObjectList();
                 foreach($master_rows as $master_row) {
+                    // Try to insert
+                    $db->insertObject($child_table, $master_row, $key);
+
+                    // Update object
                     $db->updateObject($child_table, $master_row, $key);
 
                     // delete triggered query
