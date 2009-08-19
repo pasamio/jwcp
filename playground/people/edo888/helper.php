@@ -890,8 +890,12 @@ class WCPHelper {
         // Debug: echo '<pre>', print_r($files, true), '</pre>';
         foreach($files as $file) {
             // Debug: echo '<pre>', $file, ' -> ', str_replace($patch_dest, JPATH_ROOT, $file), '</pre>';
-            JFile::delete(str_replace($patch_dest, JPATH_ROOT, $file));
-            JFile::move($file, str_replace($patch_dest, JPATH_ROOT, $file));
+            $file_dest = str_replace($patch_dest, JPATH_ROOT, $file);
+            if(file_exists($file_dest))
+                JFile::delete($file_dest);
+            if(!is_dir(dirname($file_dest)))
+                JFolder::create(dirname($file_dest));
+            JFile::move($file, $file_dest);
         }
 
         // Remove tmp files
