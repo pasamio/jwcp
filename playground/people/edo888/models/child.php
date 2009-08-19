@@ -61,7 +61,7 @@ class WCPModelChild extends JModel {
         // Lets load the data if it doesn't already exist
         if (empty($this->_data)) {
             $query = $this->_buildQuery();
-            list($this->_data) = $this->_getList($query);
+            @list($this->_data) = $this->_getList($query);
         }
 
         return $this->_data;

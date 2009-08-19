@@ -48,7 +48,7 @@ $document->addStyleDeclaration('.icon-32-help {background-image:url(./components
     $k = 0;
     for($i = 0, $n = count($this->items); $i < $n; $i++) {
         $row =& $this->items[$i];
-        $checked = JHTML::_('grid.checkedout', $row, $i);
+        $checked = JHTML::_('grid.id', $i, $row->id);
         ?>
         <tr class="<?php echo "row$k"; ?>">
             <td>

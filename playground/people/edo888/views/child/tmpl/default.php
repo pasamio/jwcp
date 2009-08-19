@@ -137,7 +137,7 @@ function addDoNotCopyTable() {
                         </label>
                     </td>
                     <td>
-                        <input class="inputbox" type="text" name="name" id="name" size="60" value="<?php echo $this->item->name; ?>" />
+                        <input class="inputbox" type="text" name="name" id="name" size="60" value="<?php echo @$this->item->name; ?>" />
                     </td>
                 </tr>
                 <tr>
