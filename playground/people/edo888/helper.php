@@ -771,6 +771,7 @@ class WCPHelper {
             switch($action) {
                 case 'add':
                     list($table_ddl) = array_values($db->getTableCreate($table));
+                    $table_ddl = preg_replace('/'.$db->_table_prefix.'/', '#__', $table_ddl, 1);
                     $sql[] = str_replace("\n", '', $table_ddl);
                     $db->setQuery('select * from ' . $table);
                     $rows = $db->loadAssocList();
