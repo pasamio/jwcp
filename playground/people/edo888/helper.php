@@ -953,16 +953,16 @@ class WCPHelper {
                     $master_db->setQuery($table_ddl);
                     $master_db->query();
                     $db->setQuery('select * from ' . $table);
-                    $rows = $db->loadObjectList();
-                    foreach($rows as $row)
+                    $table_rows = $db->loadObjectList();
+                    foreach($table_rows as $row)
                         $master_db->insertObject($table, $row);
                     break;
                 case 'update':
                     $master_db->setQuery('truncate table ' . $table);
                     $master_db->query();
                     $db->setQuery('select * from ' . $table);
-                    $rows = $db->loadObjectList();
-                    foreach($rows as $row)
+                    $table_rows = $db->loadObjectList();
+                    foreach($table_rows as $row)
                         $master_db->insertObject($table, $row);
                     break;
                 case 'delete':
