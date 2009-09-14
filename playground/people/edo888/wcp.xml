@@ -17,7 +17,7 @@
     <install>
         <queries>
             <query>
-                CREATE TABLE `#__wcp` (
+                CREATE TABLE IF NOT EXISTS `#__wcp` (
                     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
                     `sid` varchar(20) NOT NULL DEFAULT '',
                     `name` varchar(250) NOT NULL DEFAULT '',
@@ -46,56 +46,11 @@
             <filename>controller.php</filename>
             <filename>helper.php</filename>
             <filename>license.txt</filename>
-            <filename>images/index.html</filename>
-            <filename>images/wcp.png</filename>
-            <filename>images/add.png</filename>
-            <filename>images/apply.png</filename>
-            <filename>images/back.png</filename>
-            <filename>images/commit.png</filename>
-            <filename>images/delete.png</filename>
-            <filename>images/diff.png</filename>
-            <filename>images/edit.png</filename>
-            <filename>images/help.png</filename>
-            <filename>images/merge.png</filename>
-            <filename>images/refresh.png</filename>
-            <filename>images/revert.png</filename>
-            <filename>images/sync.png</filename>
-            <filename>tables/index.html</filename>
-            <filename>tables/wcp.php</filename>
-            <filename>views/index.html</filename>
-            <filename>views/applypatch/index.html</filename>
-            <filename>views/applypatch/view.html.php</filename>
-            <filename>views/applypatch/tmpl/index.html</filename>
-            <filename>views/applypatch/tmpl/default.php</filename>
-            <filename>views/child/index.html</filename>
-            <filename>views/child/view.html.php</filename>
-            <filename>views/child/tmpl/index.html</filename>
-            <filename>views/child/tmpl/default.php</filename>
-            <filename>views/childs/index.html</filename>
-            <filename>views/childs/view.html.php</filename>
-            <filename>views/childs/tmpl/index.html</filename>
-            <filename>views/childs/tmpl/default.php</filename>
-            <filename>views/differences/index.html</filename>
-            <filename>views/differences/view.html.php</filename>
-            <filename>views/differences/tmpl/index.html</filename>
-            <filename>views/differences/tmpl/default.php</filename>
-            <filename>models/index.html</filename>
-            <filename>models/child.php</filename>
-            <filename>models/childs.php</filename>
-            <filename>help/index.html</filename>
-            <filename>help/en-GB/index.html</filename>
-            <filename>help/en-GB/screen.wcp.applypatch.html</filename>
-            <filename>help/en-GB/screen.wcp.differences.html</filename>
-            <filename>help/en-GB/screen.wcp.html</filename>
-            <filename>help/en-GB/screen.wcp.new.html</filename>
-            <filename>help/en-GB/working_copy_applypatch_toolbar.png</filename>
-            <filename>help/en-GB/working_copy_applypatch.png</filename>
-            <filename>help/en-GB/working_copy_differences_toolbar.png</filename>
-            <filename>help/en-GB/working_copy_differences.png</filename>
-            <filename>help/en-GB/working_copy_new_toolbar.png</filename>
-            <filename>help/en-GB/working_copy_new.png</filename>
-            <filename>help/en-GB/working_copy_toolbar.png</filename>
-            <filename>help/en-GB/working_copy.png</filename>
+            <folder>images</folder>
+            <folder>tables</folder>
+            <folder>views</folder>
+            <folder>models</folder>
+            <folder>help</folder>
         </files>
 
         <languages folder="languages">
