@@ -15,6 +15,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.controller');
+require_once JPATH_ROOT.DS.'libraries'.DS.'joomla'.DS.'database'.DS.'database'.DS.'mysql.php';
 
 /**
  * Working Copy Controller class
