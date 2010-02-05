@@ -37,8 +37,8 @@ function submitbutton(pressbutton) {
 }
 
 function addExcludeFile() {
-	var n = document.getElementsByName('exclude_files[]').length + 1;
-	var a = document.getElementById('exclude_files_add');
+    var n = document.getElementsByName('exclude_files[]').length + 1;
+    var a = document.getElementById('exclude_files_add');
 
     var newEntry = document.createElement('input');
     newEntry.setProperty('class', 'inputbox');
@@ -125,7 +125,7 @@ function addDoNotCopyTable() {
 
     <table class="noshow">
     <tr>
-        <td width="60%">
+        <td width="50%">
             <fieldset class="adminform">
                 <legend><?php echo JText::_('General'); ?></legend>
 
@@ -368,7 +368,7 @@ function addDoNotCopyTable() {
                 </table>
             </fieldset>
         </td>
-        <td width="40%">
+        <td width="50%">
             <fieldset class="adminform">
                 <legend><?php echo JText::_('Exclude Files'); ?></legend>
 
