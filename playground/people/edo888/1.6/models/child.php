@@ -1,7 +1,7 @@
 <?php
 /**
  * @version   $Id$
- * @copyright Copyright (C) 2009 Edvard Ananyan. All rights reserved.
+ * @copyright Copyright (C) 2009 - 2010 Edvard Ananyan. All rights reserved.
  * @author    Edvard Ananyan <edo888@gmail.com>
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
  *

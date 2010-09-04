@@ -1,7 +1,7 @@
 <?php
 /**
  * @version   $Id$
- * @copyright Copyright (C) 2009 Edvard Ananyan. All rights reserved.
+ * @copyright Copyright (C) 2009 - 2010 Edvard Ananyan. All rights reserved.
  * @author    Edvard Ananyan <edo888@gmail.com>
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
  *
@@ -27,7 +27,7 @@ class WCPViewDifferences extends JView {
      *
      * @access public
      */
-	function display($tpl = null) {
+    function display($tpl = null) {
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . JText::_('Differences') . ' ]</small></small>', 'generic.png');
         JToolBarHelper::custom('createPatch', 'new.png', 'new.png', 'Create Patch');
         JToolBarHelper::custom('syncChild', 'sync.png', 'sync.png', 'Synchronize', '', false);
@@ -40,15 +40,15 @@ class WCPViewDifferences extends JView {
         $cache =& JFactory::getCache('com_wcp', 'callback', 'file');
         $cache->setCaching(true);
 
-	    // Get data from the cache
-	    $items = $cache->call(array('WCPHelper', 'getDifferences'));
-	    $db_items = $cache->call(array('WCPHelper', 'getDatabaseDifferences'));
-	    $table_items = $cache->call(array('WCPHelper', 'getTableDifferences'));
+        // Get data from the cache
+        $items = $cache->call(array('WCPHelper', 'getDifferences'));
+        $db_items = $cache->call(array('WCPHelper', 'getDatabaseDifferences'));
+        $table_items = $cache->call(array('WCPHelper', 'getTableDifferences'));
 
         $this->assignRef('items', $items);
         $this->assignRef('db_items', $db_items);
         $this->assignRef('table_items', $table_items);
         parent::display($tpl);
-	}
+    }
 
 }

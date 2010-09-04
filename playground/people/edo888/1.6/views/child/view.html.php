@@ -1,7 +1,7 @@
 <?php
 /**
  * @version   $Id$
- * @copyright Copyright (C) 2009 Edvard Ananyan. All rights reserved.
+ * @copyright Copyright (C) 2009 - 2010 Edvard Ananyan. All rights reserved.
  * @author    Edvard Ananyan <edo888@gmail.com>
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
  *
@@ -27,10 +27,10 @@ class WCPViewChild extends JView {
      *
      * @access public
      */
-	function display($tpl = null) {
-	    JHTML::_('behavior.tooltip');
+    function display($tpl = null) {
+        JHTML::_('behavior.tooltip');
 
-	    $db =& JFactory::getDBO();
+        $db =& JFactory::getDBO();
 
         JToolBarHelper::title(JText::_('WCP Manager') . ': <small><small>[ ' . (JRequest::getVar('task', 'edit') == 'edit' ? JText::_('Edit Child') : JText::_('New Child')) . ' ]</small></small>', 'generic.png');
         JToolBarHelper::save();
@@ -38,18 +38,18 @@ class WCPViewChild extends JView {
         JRequest::getVar('task', 'edit') == 'edit' ? JToolBarHelper::cancel('cancel', 'Close') : JToolBarHelper::cancel();
         JToolBarHelper::help('screen.wcp.new', true);
 
-	    // Get data from the model
+        // Get data from the model
         $child =& $this->get('Data');
 
         // Generate Random Site ID
-	    if(JRequest::getVar('task', 'edit') == 'add') {
+        if(JRequest::getVar('task', 'edit') == 'add') {
             jimport('joomla.user.helper');
             $secret = JUserHelper::genRandomPassword(16);
         } else {
             $secret = $child->sid;
         }
 
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
 
         // Get child params
         if(JRequest::getVar('task', 'edit') == 'add') {
@@ -147,6 +147,6 @@ class WCPViewChild extends JView {
         $this->assignRef('secret', $secret);
         $this->assignRef('item', $child);
         parent::display($tpl);
-	}
+    }
 
 }

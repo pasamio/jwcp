@@ -1,7 +1,7 @@
 <?php
 /**
  * @version   $Id$
- * @copyright Copyright (C) 2009 Edvard Ananyan. All rights reserved.
+ * @copyright Copyright (C) 2009 - 2010 Edvard Ananyan. All rights reserved.
  * @author    Edvard Ananyan <edo888@gmail.com>
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
  *
@@ -27,7 +27,7 @@ class WCPHelper {
      * @return boolean
      */
     function isMaster() {
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
         $db =& JFactory::getDBO();
 
         $db->setQuery('select id from #__wcp where sid = "' . $mainframe->getCfg('secret') . '"');
@@ -86,7 +86,7 @@ class WCPHelper {
      * @return int
      */
     function getPrimaryKeyCount($db, $table) {
-        $table = str_replace('#__', $db->_table_prefix, $table);
+        $table = str_replace('#__', $db->get('_table_prefix'), $table);
         $db->setQuery("select count(*) from information_schema.columns where table_schema = database() and table_name = '$table' and column_key = 'PRI'");
         return $db->loadResult();
     }
@@ -98,7 +98,7 @@ class WCPHelper {
      * @return object JDatabaseMySQL
      */
     function &getMasterDBO() {
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
         $db =& JFactory::getDBO();
         $db->setQuery("select params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
         $params = $db->loadResult();
@@ -116,7 +116,7 @@ class WCPHelper {
      * @return array
      */
     function getExcludeFiles($path = JPATH_ROOT) {
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
 
         $db =& JFactory::getDBO();
         $db->setQuery("select path, params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
@@ -140,7 +140,7 @@ class WCPHelper {
      * @return array
      */
     function getExcludeTables() {
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
         $db =& JFactory::getDBO();
 
         $db->setQuery("select params from #__wcp where sid = '" . $mainframe->getCfg('secret') . "'");
@@ -160,7 +160,7 @@ class WCPHelper {
         // Try to set the script execution time to unlimited, if php is in safe mode there is no workaround
         @set_time_limit(0);
 
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
         $master_db =& JFactory::getDBO();
         $child_db = new JDatabaseMySQL(array('host' => JRequest::getVar('host'), 'user' => JRequest::getVar('user'), 'password' => JRequest::getVar('password'), 'database' => JRequest::getVar('database'), 'prefix' => JRequest::getVar('prefix')));
         // Debug: $child_db->debug(1);
@@ -228,7 +228,7 @@ class WCPHelper {
         $child_db->query();
 
         // Get all joomla tables from master
-        $master_db->setQuery("show tables like '".$master_db->_table_prefix."%'");
+        $master_db->setQuery("show tables like '" . $master_db->get('_table_prefix') . "%'");
         $master_tables = $master_db->loadResultArray();
         // Debug: echo '<pre>', print_r($master_tables, true), '</pre>';
 
@@ -236,7 +236,7 @@ class WCPHelper {
             // Copy all tables w/ data to the child
             foreach($master_tables as $master_table) {
                 $master_table_ddl = array_pop($master_db->getTableCreate($master_table));
-                $child_table = str_replace($master_db->_table_prefix, '#__', $master_table);
+                $child_table = str_replace($master_db->get('_table_prefix'), '#__', $master_table);
                 $child_table_ddl = preg_replace('/'.$master_table.'/', $child_table, $master_table_ddl, 1);
                 // Debug: echo '<pre>', $child_table_ddl, '</pre>';
 
@@ -250,7 +250,7 @@ class WCPHelper {
                         $child_db->insertObject($child_table, $master_row);
 
                     // Create triggers for child table if number of primary key fields is one
-                    $child_table = str_replace('#__', $child_db->_table_prefix, $child_table);
+                    $child_table = str_replace('#__', $child_db->get('_table_prefix'), $child_table);
                     if(self::getPrimaryKeyCount($child_db, $child_table) == 1) {
                         $key = self::getPrimaryKeyField($child_db, $child_table);
                         $child_db->setQuery("create trigger on_insert_$child_table after insert on $child_table for each row " .
@@ -458,7 +458,7 @@ class WCPHelper {
         $wcp_table->store();
 
         // Save changes to child
-        $wcp_table->_db = $child_db;
+        $wcp_table->set('_db', $child_db);
         $wcp_table->store();
         // Debug: echo '<pre>', print_r($wcp_table, true), '</pre>';
 
@@ -516,7 +516,7 @@ class WCPHelper {
             if(!$child_db->connected())
                 JError::raiseWarning(0, JText::_('Cannot connect to child database to delete tables'));
             else {
-                $child_db->setQuery("show tables like '" . $child_db->_table_prefix . "%'");
+                $child_db->setQuery("show tables like '" . $child_db->get('_table_prefix') . "%'");
                 $child_tables = $child_db->loadResultArray();
                 // Debug: echo '<pre>', print_r($child_tables, true), '</pre>';
                 foreach($child_tables as $child_table) {
@@ -543,7 +543,7 @@ class WCPHelper {
      * @return array
      */
     function getDifferences($path = JPATH_ROOT) {
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
         $diffs = array();
         $db =& JFactory::getDBO();
 
@@ -606,7 +606,7 @@ class WCPHelper {
      * @return array
      */
     function getDatabaseDifferences() {
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
         $diffs = array();
         $master_db =& self::getMasterDBO();
         $child_db =& JFactory::getDBO();
@@ -615,16 +615,16 @@ class WCPHelper {
             JError::raiseNotice(0, JText::_('Cannot connect to master database to get database differences'));
             $master_tables = array();
         } else {
-            $master_db->setQuery("show tables like '" . $master_db->_table_prefix . "%'");
+            $master_db->setQuery("show tables like '" . $master_db->get('_table_prefix') . "%'");
             $master_tables = $master_db->loadResultArray();
             foreach($master_tables as $i => $table)
-                $master_tables[$i] = str_replace($master_db->_table_prefix, '#__', $table);
+                $master_tables[$i] = str_replace($master_db->get('_table_prefix'), '#__', $table);
         }
 
-        $child_db->setQuery("show tables like '" . $child_db->_table_prefix . "%'");
+        $child_db->setQuery("show tables like '" . $child_db->get('_table_prefix') . "%'");
         $child_tables = $child_db->loadResultArray();
         foreach($child_tables as $i => $table)
-            $child_tables[$i] = str_replace($child_db->_table_prefix, '#__', $table);
+            $child_tables[$i] = str_replace($child_db->get('_table_prefix'), '#__', $table);
 
         $exclude_tables = self::getExcludeTables();
 
@@ -636,10 +636,10 @@ class WCPHelper {
         $child_db->setQuery("set session time_zone = '" . date('P', time()) . "'");
         $child_db->query();
 
-        $child_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name like '$child_db->_table_prefix%' and create_time > '$internal_timer'");
+        $child_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name like '" . $child_db->get('_table_prefix') . "%' and create_time > '$internal_timer'");
         $tables_added = $child_db->loadResultArray();
         foreach($tables_added as $i => $table)
-            $tables_added[$i] = str_replace($child_db->_table_prefix, '#__', $table);
+            $tables_added[$i] = str_replace($child_db->get('_table_prefix'), '#__', $table);
         $tables_added = array_diff($tables_added, $exclude_tables);
 
         //$tables_added = array_diff($child_tables, $master_tables, $exclude_tables);
@@ -648,22 +648,22 @@ class WCPHelper {
         $tables_deleted = array_diff($master_tables, $child_tables, $exclude_tables);
         // Debug: echo '<pre>', print_r($tables_deleted, true), '</pre>';
 
-        $child_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name like '$child_db->_table_prefix%' and update_time > '$internal_timer' and table_name not in (select distinct event_object_table from information_schema.triggers where event_object_schema = database())");
+        $child_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name like '" . $child_db->get('_table_prefix') . "%' and update_time > '$internal_timer' and table_name not in (select distinct event_object_table from information_schema.triggers where event_object_schema = database())");
         $tables_updated = $child_db->loadResultArray();
         foreach($tables_updated as $i => $table)
-            $tables_updated[$i] = str_replace($child_db->_table_prefix, '#__', $table);
+            $tables_updated[$i] = str_replace($child_db->get('_table_prefix'), '#__', $table);
         $tables_updated = array_diff($tables_updated, $tables_added, $exclude_tables);
 
         // Compare changes with master - see if tables already exist
         if($master_db->connected())
             if(isset($tables_added[0])) {
                 foreach($tables_added as $table)
-                    $tables_added_list[] = $master_db->Quote(str_replace('#__', $master_db->_table_prefix, $table));
+                    $tables_added_list[] = $master_db->Quote(str_replace('#__', $master_db->get('_table_prefix'), $table));
                 $tables_added_list = implode(',', $tables_added_list);
                 $master_db->setQuery("select table_name from information_schema.tables where table_schema = database() and table_name in ($tables_added_list)");
                 $tables_created = $master_db->loadResultArray();
                 foreach($tables_created as $i => $table)
-                    $tables_created[$i] = str_replace($master_db->_table_prefix, '#__', $table);
+                    $tables_created[$i] = str_replace($master_db->get('_table_prefix'), '#__', $table);
                 $tables_added = array_diff($tables_added, $tables_created);
             }
 
@@ -688,8 +688,8 @@ class WCPHelper {
             $diff = new JObject;
             $diff->set('id', 'add ' . $table);
             $diff->set('action', 'add table');
-            $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
-            $child_db->setQuery("select create_time from information_schema.tables where table_schema = database() and table_name = '" . str_replace('#__', $child_db->_table_prefix, $table) . "'");
+            $diff->set('table_name', str_replace('#__', $child_db->get('_table_prefix'), $table));
+            $child_db->setQuery("select create_time from information_schema.tables where table_schema = database() and table_name = '" . str_replace('#__', $child_db->get('_table_prefix'), $table) . "'");
             $diff->set('mdate', date('r', strtotime($child_db->loadResult())));
             $diffs[] = $diff;
         }
@@ -698,7 +698,7 @@ class WCPHelper {
             $diff = new JObject;
             $diff->set('id', 'delete ' . $table);
             $diff->set('action', 'delete table');
-            $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
+            $diff->set('table_name', str_replace('#__', $child_db->get('_table_prefix'), $table));
             $diff->set('mdate', '-');
             $diffs[] = $diff;
         }
@@ -707,8 +707,8 @@ class WCPHelper {
             $diff = new JObject;
             $diff->set('id', 'update ' . $table);
             $diff->set('action', 'update table');
-            $diff->set('table_name', str_replace('#__', $child_db->_table_prefix, $table));
-            $child_db->setQuery("select update_time from information_schema.tables where table_schema = database() and table_name = '" . str_replace('#__', $child_db->_table_prefix, $table) . "'");
+            $diff->set('table_name', str_replace('#__', $child_db->get('_table_prefix'), $table));
+            $child_db->setQuery("select update_time from information_schema.tables where table_schema = database() and table_name = '" . str_replace('#__', $child_db->get('_table_prefix'), $table) . "'");
             $diff->set('mdate', date('r', strtotime($child_db->loadResult())));
             $diffs[] = $diff;
         }
@@ -748,7 +748,7 @@ class WCPHelper {
             foreach($rows as $row) {
                 $db->setQuery("select * from $row->table_name where $row->table_key = '$row->value'");
                 $data = $db->loadAssoc();
-                $row->table_name = str_replace($db->_table_prefix, '#__', $row->table_name);
+                $row->table_name = str_replace($db->get('_table_prefix'), '#__', $row->table_name);
                 switch($row->action) {
                     case 'insert':
                     case 'update':
@@ -771,7 +771,7 @@ class WCPHelper {
             switch($action) {
                 case 'add':
                     list($table_ddl) = array_values($db->getTableCreate($table));
-                    $table_ddl = preg_replace('/'.$db->_table_prefix.'/', '#__', $table_ddl, 1);
+                    $table_ddl = preg_replace('/'.$db->get('_table_prefix').'/', '#__', $table_ddl, 1);
                     $sql[] = str_replace("\n", '', $table_ddl);
                     $db->setQuery('select * from ' . $table);
                     $rows = $db->loadAssocList();
@@ -912,7 +912,7 @@ class WCPHelper {
      * @return boolean
      */
     function commit() {
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
         $changes = JRequest::getVar('cid');
         $db =& JFactory::getDBO();
         $master_db =& self::getMasterDBO();
@@ -949,7 +949,7 @@ class WCPHelper {
             switch($action) {
                 case 'add':
                     list($table_ddl) = array_values($db->getTableCreate($table));
-                    $table_ddl = preg_replace('/'.str_replace('#__', $db->_table_prefix, $table).'/', $table, $table_ddl, 1);
+                    $table_ddl = preg_replace('/'.str_replace('#__', $db->get('_table_prefix'), $table).'/', $table, $table_ddl, 1);
                     $master_db->setQuery($table_ddl);
                     $master_db->query();
                     $db->setQuery('select * from ' . $table);
@@ -989,7 +989,7 @@ class WCPHelper {
                         $original[$key] = $db->isQuoted($key) ? $db->Quote($val) : (int) $val; // TODO: make sure NULL values will not cause issues
 
                     $original = implode(',', $original);
-                    $master_db->setQuery("replace into " . str_replace($db->_table_prefix, '#__', $change->table_name) . " values ($original)");
+                    $master_db->setQuery("replace into " . str_replace($db->get('_table_prefix'), '#__', $change->table_name) . " values ($original)");
                     $master_db->query();
 
                     // Remove from query log - remember: id is changed after store
@@ -997,7 +997,7 @@ class WCPHelper {
                     $db->query();
                     break;
                 case 'delete':
-                    $master_db->setQuery("delete from " . str_replace($db->_table_prefix, '#__', $change->table_name) . " where $change->table_key = '$change->value'");
+                    $master_db->setQuery("delete from " . str_replace($db->get('_table_prefix'), '#__', $change->table_name) . " where $change->table_key = '$change->value'");
                     $master_db->query();
 
                     // Remove from query log - remember: id is changed after delete
@@ -1053,11 +1053,11 @@ class WCPHelper {
             foreach($changes as $change) {
                 // If the change on child 2 is made after the same change on the child 1 or there is no
                 // such change on child 1, commit the change to child 1
-                $child1_db->setQuery("select date from #__log_queries where table_name = '" . str_replace($child2_db->_table_prefix, $child1_db->_table_prefix, $change->table_name) . "' and value = '$change->value'");
+                $child1_db->setQuery("select date from #__log_queries where table_name = '" . str_replace($child2_db->get('_table_prefix'), $child1_db->get('_table_prefix'), $change->table_name) . "' and value = '$change->value'");
                 $date = $child1_db->loadResult();
                 if(empty($date) or strtotime($change->date) > strtotime($date)) {
                     // Commit the change to child 1
-                    $change->table_name = str_replace($child2_db->_table_prefix, '#__', $change->table_name);
+                    $change->table_name = str_replace($child2_db->get('_table_prefix'), '#__', $change->table_name);
                     switch($change->action) {
                         case 'insert':
                         case 'update':
@@ -1080,21 +1080,21 @@ class WCPHelper {
 
             # Merge database
             // Get all tables from child1 and child2
-            $child1_db->setQuery("show tables like '" . $child1_db->_table_prefix . "%'");
+            $child1_db->setQuery("show tables like '" . $child1_db->get('_table_prefix') . "%'");
             $child1_tables = $child1_db->loadResultArray();
             foreach($child1_tables as $i => $table)
-                $child1_tables[$i] = str_replace($child1_db->_table_prefix, '#__', $table);
+                $child1_tables[$i] = str_replace($child1_db->get('_table_prefix'), '#__', $table);
 
-            $child2_db->setQuery("show tables like '" . $child2_db->_table_prefix . "%'");
+            $child2_db->setQuery("show tables like '" . $child2_db->get('_table_prefix') . "%'");
             $child2_tables = $child2_db->loadResultArray();
             foreach($child2_tables as $i => $table)
-                $child2_tables[$i] = str_replace($child2_db->_table_prefix, '#__', $table);
+                $child2_tables[$i] = str_replace($child2_db->get('_table_prefix'), '#__', $table);
 
             // Copy proper tables from child 2 to child 1
             $create_tables = array_diff($child2_tables, $child1_tables);
             foreach($create_tables as $table) {
                 $table_ddl = end($child2_db->getTableCreate($table));
-                $table_ddl = preg_replace('/'.str_replace($child2_db->_table_prefix, '#__', $table).'/', $table, $table_ddl, 1);
+                $table_ddl = preg_replace('/'.str_replace($child2_db->get('_table_prefix'), '#__', $table).'/', $table, $table_ddl, 1);
 
                 // Create table
                 $child1_db->setQuery($table_ddl);
@@ -1166,7 +1166,7 @@ class WCPHelper {
      * @return boolean
      */
     function revertChild() {
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
         $changes = JRequest::getVar('cid');
         $db =& JFactory::getDBO();
         $master_db =& self::getMasterDBO();
@@ -1219,7 +1219,7 @@ class WCPHelper {
                         JError::raiseNotice(0, "Cannot connect to master database to revert table $table");
                     else {
                         list($table_ddl) = array_values($master_db->getTableCreate($table));
-                        $table_ddl = preg_replace('/'.str_replace('#__', $master_db->_table_prefix, $table).'/', $table, $table_ddl, 1);
+                        $table_ddl = preg_replace('/'.str_replace('#__', $master_db->get('_table_prefix'), $table).'/', $table, $table_ddl, 1);
                         $db->setQuery($table_ddl);
                         $db->query();
                         $master_db->setQuery('select * from ' . $table);
@@ -1252,7 +1252,7 @@ class WCPHelper {
                     if(!$master_db->connected())
                         JError::raiseNotice(0, "Cannot connect to master database to revert row " . $change->table_name . "." . $change->table_key . "=" . $change->value);
                     else {
-                        $master_db->setQuery("select * from " . str_replace($db->_table_prefix, '#__', $change->table_name) . " where $change->table_key = '$change->value'");
+                        $master_db->setQuery("select * from " . str_replace($db->get('_table_prefix'), '#__', $change->table_name) . " where $change->table_key = '$change->value'");
                         $original = $master_db->loadAssoc();
 
                         if(count($original) == 0) {
@@ -1292,7 +1292,7 @@ class WCPHelper {
      * @return boolean
      */
     function syncChild() {
-        global $mainframe;
+        $mainframe =& JFactory::getApplication();
         $db =& JFactory::getDBO();
         $master_db =& self::getMasterDBO();
 
@@ -1336,13 +1336,13 @@ class WCPHelper {
         // As we don't know which table rows are modified on the master website,
         // we need to keep those, which are modified on the child, and replace
         // the rest from the master to child
-        $master_db->setQuery("show tables like '" . $master_db->_table_prefix . "%'");
+        $master_db->setQuery("show tables like '" . $master_db->get('_table_prefix') . "%'");
         $master_tables = $master_db->loadResultArray();
         foreach($master_tables as $master_table) {
-            if(in_array(str_replace($master_db->_table_prefix, '#__', $master_table), self::getExcludeTables()))
+            if(in_array(str_replace($master_db->get('_table_prefix'), '#__', $master_table), self::getExcludeTables()))
                 continue;
 
-            $child_table = str_replace($master_db->_table_prefix, $db->_table_prefix, $master_table);
+            $child_table = str_replace($master_db->get('_table_prefix'), $db->get('_table_prefix'), $master_table);
             $db->setQuery("show tables like '$child_table'");
             $db->query();
             if($db->getNumRows() == 0) {
