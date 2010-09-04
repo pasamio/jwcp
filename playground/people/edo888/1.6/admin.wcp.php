@@ -1,7 +1,7 @@
 <?php
 /**
  * @version   $Id$
- * @copyright Copyright (C) 2009 Edvard Ananyan. All rights reserved.
+ * @copyright Copyright (C) 2009 - 2010 Edvard Ananyan. All rights reserved.
  * @author    Edvard Ananyan <edo888@gmail.com>
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
  *
@@ -14,12 +14,9 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
-// Make sure the user is authorized to view this page
-$acl =& JFactory::getACL();
-$acl->addACL('com_wcp', 'manage', 'users', 'super administrator');
-$user =& JFactory::getUser();
-if(!$user->authorize('com_wcp', 'manage'))
-    $mainframe->redirect('index.php', JText::_('ALERTNOTAUTH'));
+// Access check.
+if(!JFactory::getUser()->authorise('core.manage', 'com_wcp'))
+    return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 
 // Require the base controller
 require_once(JPATH_COMPONENT.DS.'controller.php');

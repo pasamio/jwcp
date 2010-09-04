@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/component-install.dtd">
-<install type="component" version="1.5.0" method="upgrade">
+<extension type="component" version="1.6.0" method="upgrade">
     <name>WCP</name>
     <creationDate>May 2009</creationDate>
     <author>Edvard Ananyan</author>
     <authorEmail>edo888@gmail.com</authorEmail>
     <authorUrl>http://edo.webmaster.am</authorUrl>
-    <copyright>Copyright (C) 2009 Edvard Ananyan. All rights reserved.</copyright>
+    <copyright>Copyright (C) 2009 - 2010 Edvard Ananyan. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
-    <version>1.5.$Rev$</version>
-    <description>WCP_DESCRIPTION</description>
+    <version>1.6.$Rev$</version>
+    <description>COM_WCP_WCP_DESCRIPTION</description>
 
     <installfile></installfile>
     <uninstallfile></uninstallfile>
 
     <install>
-        <queries>
+        <queries><!-- TODO: move the queries into files -->
             <query>
                 CREATE TABLE IF NOT EXISTS `#__wcp` (
                     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -57,4 +56,4 @@
             <language tag="en-GB">en-GB.com_wcp.ini</language>
         </languages>
     </administration>
-</install>
+</extension>
