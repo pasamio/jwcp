@@ -125,7 +125,7 @@ function addDoNotCopyTable() {
 
     <table class="noshow">
     <tr>
-        <td width="50%">
+        <td width="50%" valign="top">
             <fieldset class="adminform">
                 <legend><?php echo JText::_('General'); ?></legend>
 
@@ -368,7 +368,7 @@ function addDoNotCopyTable() {
                 </table>
             </fieldset>
         </td>
-        <td width="50%">
+        <td width="50%" valign="top">
             <fieldset class="adminform">
                 <legend><?php echo JText::_('Exclude Files'); ?></legend>
 
