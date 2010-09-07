@@ -464,7 +464,7 @@ function addDoNotCopyTable() {
 
     <input type="hidden" name="option" value="com_wcp" />
     <input type="hidden" name="task" value="" />
-    <input type="hidden" name="cid[]" value="<?php echo $this->item->id; ?>" />
+    <input type="hidden" name="cid[]" value="<?php echo @$this->item->id; ?>" />
     <input type="hidden" name="sid" value="<?php echo $this->secret; ?>" />
     <?php echo JHTML::_('form.token'); ?>
 
